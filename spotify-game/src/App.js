@@ -14,6 +14,7 @@ function App() {
   const [artists, setArtists] = useState([])
   const [track, setTrack] = useState(null)
   const [track2, setTrack2] = useState(null)
+  const [userTopTracks, setUserTopTracks] = useState([])
 
 
   useEffect(() => {
@@ -103,6 +104,17 @@ const play2 = () => {
   iframe.contentWindow.postMessage({command: 'toggle'}, '*');
 }
 
+const getUsersTopSongs = async () => {
+  const topTracks = await axios.get(`https://api.spotify.com/v1/me/top/tracks`, {
+    headers: {
+        Authorization: `Bearer ${token}`
+    },
+})
+const test = topTracks.data.items.map((e) => {return(<div>{e.name}</div>)})
+console.log('bbb', test)
+setUserTopTracks(test)
+}
+
 const renderSong = () => {
   const size =  {width: '100%', height: '100%'}
   const uri=`spotify:track:${track2 ? track2.id : ' '}`
@@ -158,7 +170,7 @@ const renderArtists = () => {
           <header className="App-header">
               <h1>Spotify React</h1>
               {!token ?
-                  <a href={`${AUTH_ENDPOINT}?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=${RESPONSE_TYPE}`}>Login
+                  <a href={`${AUTH_ENDPOINT}?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=${RESPONSE_TYPE}&scope=user-top-read`}>Login
                       to Spotify</a>
                   : <button onClick={logout}>Logout</button>}
           </header>
@@ -169,7 +181,11 @@ const renderArtists = () => {
       </form>
       {renderArtists()}
       {renderSong()}
-
+                <div>
+                  <button onClick={getUsersTopSongs}>click</button>
+                
+                {userTopTracks.length > 0 ? (<div> {userTopTracks}</div>): (<div></div>)}
+                </div>
 
       </div>
   );
