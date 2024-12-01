@@ -19,10 +19,12 @@
 }
 
 .Album-cover img {
-  height: 100%;
+  height: 40vh;
 }
 
 .player {
-  opacity: 1;
+  opacity: 0;
+  z-index: -10;
+  position: absolute;
 }
 
