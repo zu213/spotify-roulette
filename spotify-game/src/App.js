@@ -23,7 +23,6 @@ function App() {
 
       if (!token && hash) {
           token = hash.substring(1).split("&").find(elem => elem.startsWith("access_token")).split("=")[1]
-
           window.location.hash = ""
           window.localStorage.setItem("token", token)
       }
@@ -37,70 +36,52 @@ function App() {
       window.localStorage.removeItem("token")
   }
 
+  const request = async (token, endpoint, searchKey=null) => {
+    const requestObject = {}
+    // console.log('token: ',token)
+    requestObject.headers =  {
+      Authorization: `Bearer ${token}`
+    }
+    if(searchKey){
+      requestObject.params = {
+        q: searchKey.searchKey,
+        type: searchKey.type
+     }
+    }
+
+    return await axios.get(`https://api.spotify.com/v1/${endpoint}`, requestObject)
+  }
+
   const searchArtists = async (e) => {
     e.preventDefault()
-    const {data} = await axios.get("https://api.spotify.com/v1/search", {
-        headers: {
-            Authorization: `Bearer ${token}`
-        },
-        params: {
-            q: searchKey,
-            type: "artist"
-        }
-    })
+    const artistData = await request(token, 'search', {searchKey, type: 'artist'})
+    setArtists(artistData.data.artists.items)
+    const artistId = artistData.data.artists.items[0].id;
 
-    setArtists(data.artists.items)
-    const id = data.artists.items[0].id;
-    const albums = await axios.get(`https://api.spotify.com/v1/artists/${id}/albums`, {
-      headers: {
-          Authorization: `Bearer ${token}`
-      },
-    })
-    console.log(albums);
-    const id2 = albums.data.items[0].id;
-    const tracks = await axios.get(`https://api.spotify.com/v1/albums/${id2}/tracks`, {
-      headers: {
-          Authorization: `Bearer ${token}`
-      },
-  })
-  setTrack(tracks.data.items[0]);
-  searchSong(e);
+
+    const albumsData = await request(token, `artists/${artistId}/albums`)
+    const albumId = albumsData.data.items[0].id;
+
+    const tracksData = await request(token, `albums/${albumId}/tracks`)
+    setTrack(tracksData.data.items[0]);
+
+    await searchSong(e);
 }
 
 const searchSong = async (e) => {
   e.preventDefault()
-  console.log('aaa')
-  const {data} = await axios.get("https://api.spotify.com/v1/search", {
-      headers: {
-          Authorization: `Bearer ${token}`
-      },
-      params: {
-          q: searchKey,
-          type: "track"
-      }
-  })
-  console.log('test',data.tracks)
-  const track = await axios.get(`https://api.spotify.com/v1/tracks/${data.tracks.items[0].id}`, {
-    headers: {
-        Authorization: `Bearer ${token}`
-    },
-    params: {
-        q: searchKey,
-        type: "track"
-    }
-})
-  console.log('aaaa', track)
+  const trackData = await request(token, 'search', {searchKey, type: 'track'})
+  const track = await request(token, `tracks/${trackData.data.tracks.items[0].id}`)
+
   setTrack2(track.data)
   
 }
 
-const play = () => {
-  const iframe =document.getElementById('spotify');
-  iframe.contentWindow.postMessage({command: 'toggle'}, '*');
-}
+function playPlayer(id) {
+  const iframe =document.getElementById(id);
+  console.log('Interact: ', id)
+  if(!iframe) return
 
-const play2 = () => {
-  const iframe =document.getElementById('spotify2');
   iframe.contentWindow.postMessage({command: 'toggle'}, '*');
 }
 
@@ -109,33 +90,37 @@ const getUsersTopSongs = async () => {
     headers: {
         Authorization: `Bearer ${token}`
     },
-})
-const test = topTracks.data.items.map((e) => {return(<div>{e.name}</div>)})
-console.log('bbb', test)
-setUserTopTracks(test)
-}
+  })
+  const topTrackNames = topTracks.data.items.map((e) => {return(<div>{e.name}</div>)})
+  setUserTopTracks(topTrackNames)
+  }
 
-const renderSong = () => {
+const renderSong = (localTrack) => {
   const size =  {width: '100%', height: '100%'}
-  const uri=`spotify:track:${track2 ? track2.id : ' '}`
+  const uri=`spotify:track:${localTrack ? localTrack.id : ''}`
   const view='list';
   const theme='light';
-  
+  // console.log('uri: ', `https://embed.spotify.com/?uri=${uri}&view=${view}&theme=${theme}`)
+  console.log(localTrack)
    return (
-       track2 ?
-       <div key={track2.id} className='Album-cover'>
-               <iframe
-               id="spotify2"
+      localTrack ?
+       <div key={localTrack.id} className='Album-cover'>
+        <iframe
+         id="spotify2"
          title="Spotify"
          className="player"
          src={`https://embed.spotify.com/?uri=${uri}&view=${view}&theme=${theme}`}
          width={size.width}
          height={size.height}
-         frameBorder="0"
          allowtransparency="true"
-       />   {track2.album.images.length ? <img onClick={play2} src={track2.album.images[0].url} alt=""/> : <div>No Image</div>}
-           {track2.name}
-       </div> : <div></div>
+        />
+        <div>
+          {localTrack.album.images.length ? <img onClick={() => playPlayer('spotify2')} src={localTrack.album.images[0].url} alt=""/> : <div>No Image</div>}
+          {localTrack.name}
+        </div>
+       </div> 
+       :
+        <div></div>
    )
  }
 
@@ -155,10 +140,8 @@ const renderArtists = () => {
         src={`https://embed.spotify.com/?uri=${uri}&view=${view}&theme=${theme}`}
         width={size.width}
         height={size.height}
-        frameBorder="0"
-        allowtransparency="true"
-      /> 
-          {artists[0].images.length ? <img onClick={play} src={artists[0].images[0].url} alt=""/> : <div>No Image</div>}
+      />
+          {artists[0].images.length ? <img onClick={() => playPlayer('spotify')} src={artists[0].images[0].url} alt=""/> : <div>No Image</div>}
           {artists[0].name}
       </div> : <div></div>
   )
@@ -175,17 +158,18 @@ const renderArtists = () => {
                   : <button onClick={logout}>Logout</button>}
           </header>
           <form onSubmit={searchArtists}>
+            Search Artists
           <input type="text" onChange={e => setSearchKey(e.target.value)}/>
           <button type={"submit"}>Search</button>
           <div id="test"></div>
       </form>
       {renderArtists()}
-      {renderSong()}
-                <div>
-                  <button onClick={getUsersTopSongs}>click</button>
-                
-                {userTopTracks.length > 0 ? (<div> {userTopTracks}</div>): (<div></div>)}
-                </div>
+      {renderSong(track2)}
+      <div>
+        <button onClick={getUsersTopSongs}>click</button>
+      
+      {userTopTracks.length > 0 ? (<div> {userTopTracks}</div>): (<div></div>)}
+      </div>
 
       </div>
   );
