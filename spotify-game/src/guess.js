@@ -1,35 +1,59 @@
-import {useEffect, useState, componentDidMount} from 'react';
+import {useEffect, useState} from 'react';
 import './App.css';
-import axios from 'axios';
 
+let iframeFound = false;
+let songStarted = false
 
 function Guess(props) {
-  const [searchKey, setSearchKey] = useState("")
-  const [artist, setArtist] = useState([])
+  // const [searchKey, setSearchKey] = useState("")
   const [track, setTrack] = useState(null)
   const [players, setPlayers] = useState(['me'])
   const [gameInPlay, setGameInPlay] = useState(false)
   const [timeLeft, setTimeLeft] = useState(60);
+  const [guessTime, setGuessTime] = useState(null);
   const [intervalId, setIntervalId] = useState(null)
+  const [showAlbum, setShowAlbum] = useState(false)
+  const [showArtist, setShowArtist] = useState(false)
+  const [showSong, setShowSong] = useState(false)
+  const [chosenPlayer, setChosenPlayer] = useState(null)
+
+
 
 
   const request = props.requestMethod
+useEffect(() => {
+  // observer that waits for iframe to load then adds a interval to keep trying to play the song until it is able to.
+  const observer = new MutationObserver((mutations, observer) => {
+    const element = document.getElementById('spotify');
 
+      if (element && element.contentWindow.document && !iframeFound) {
+          observer.disconnect();
 
-  const searchSong = async (e) => {
-    
-    e.preventDefault()
-    const trackData = await request('search', {searchKey, type: 'track'})
-    const track = await request(`tracks/${trackData.data.tracks.items[0].id}`)
+          window.addEventListener('message', (m) => {
+            if(m.data.type === 'playback_update' && !songStarted){
+              clearInterval(intervalId)
+              startClock()
+              songStarted = true
+            }
+          }, [timeLeft])
+          const intervalId = setInterval(() => {
+            playPlayer('spotify');
+          }, 500);
 
-    setTrack(track.data)
-    
-  }
+          iframeFound = true
+      }
+  }, [timeLeft]);
+
+  observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+  });
+}, [])
 
   const playPlayer = (id) => {
     const iframe =document.getElementById(id);
-    console.log('Interact: ', id)
     if(!iframe) return
+    console.log('Interact: ', id, iframe)
 
     iframe.contentWindow.postMessage({command: 'toggle'}, '*');
   }
@@ -47,12 +71,11 @@ function Guess(props) {
     const uri=`spotify:track:${localTrack ? localTrack.id : ''}`
     const view='list';
     const theme='light';
-    // console.log('uri: ', `https://embed.spotify.com/?uri=${uri}&view=${view}&theme=${theme}`)
     return (
         localTrack ?
         <div key={localTrack.id} className='Album-cover'>
           <iframe
-          id="spotify2"
+          id="spotify"
           title="Spotify"
           className="player"
           src={`https://embed.spotify.com/?uri=${uri}&view=${view}&theme=${theme}`}
@@ -61,11 +84,11 @@ function Guess(props) {
           allowtransparency="true"
           />
           <div>
-            {localTrack.album.images.length ? <img onClick={() => playPlayer('spotify2')} src={localTrack.album.images[0].url} alt=""/> : <div>No Image</div>}
+            {localTrack.album.images.length ? <img className={!showAlbum ? 'hidden' : ''} onClick={() => playPlayer('spotify')} src={localTrack.album.images[0].url} alt=""/> : <div>No Image</div>}
             <br />
-            {Array.from(localTrack.artists, (i) => (<span>{i.name},</span>))}
+            {Array.from(localTrack.artists, (i) => (<span className={!showArtist ? 'hidden' : ''}>{i.name},</span>))}
             <br />
-            {localTrack.name}
+            <div className={!showSong ? 'hidden' : ''}>{localTrack.name}</div>
           </div>
         </div> 
         :
@@ -77,49 +100,72 @@ function Guess(props) {
     getUsersTopSongs().then((userTopTracks) => {
 
       const i = Math.floor(Math.random() * players.length);
-      const chosenPlayer = players[i];
+      setChosenPlayer(players[i]);
 
       const j = Math.floor(Math.random() * userTopTracks.length);
       const chosenSong = userTopTracks[j]
+
+      setShowAlbum(false)
+      setShowArtist(false)
+      setShowSong(false)
+
       setTrack(chosenSong)
       setGameInPlay(true)
-
-      console.log(chosenSong, userTopTracks)
-      //clearInterval(intervalId);
-      console.log('before',timeLeft)
   
   
-      // clear interval on re-render to avoid memory leaks
-    });
+        // clear interval on re-render to avoid memory leaks
+      });
+    }
 
-    setTimeLeft(60)
-    if(intervalId) clearInterval(intervalId)
-    const id = setInterval(() => {
-      if(timeLeft < 1){
-        clearInterval(intervalId)
-        setIntervalId(null)
-      }
-      setTimeLeft(timeLeft => timeLeft - 1)
-    }, 1000);
-    setIntervalId(id)
-  }
+    const startClock =  () => {
 
-  const playerButtons = () => {
-    return (
-      Array.from(players, (i) => (
-        <button onClick={() => {playerGuess(i)}}>
-          {i}
-        </button>
-      ))
-    )
-  }
+      setTimeLeft(60)
+      if(intervalId) clearInterval(intervalId)
+      let localTime = 60
+      const id = setInterval(() => {
+        if(localTime < 1){
+          clearInterval(id)
+          setIntervalId(null)
+          playPlayer('spotify')
+        }
+        if(localTime < 45){
+          setShowAlbum(true)
+        }
+        if(localTime < 30){
+          setShowArtist(true)
+        }
+        if(localTime < 15){
+          setShowSong(true)
+        }
+        localTime--
+        //console.log(localTime)
 
-  const playerGuess = (guess) => {
-    //setGameInPlay(false)
-    clearInterval(intervalId)
-    setIntervalId(null)
+        setTimeLeft(timeLeft => timeLeft - 1)
+      }, 1000);
+      setIntervalId(id)
+    }
 
-  }
+
+    const playerButtons = () => {
+      return (
+        Array.from(players, (i) => (
+          <button onClick={() => {playerGuess(i)}}>
+            {i}
+          </button>
+        ))
+      )
+    }
+
+    const playerAnswer = () => {
+      return (
+        <span>{chosenPlayer}</span>
+      )
+    }
+
+    const playerGuess = (guess) => {
+      setGuessTime(timeLeft)
+
+    }
 
 
   return (
@@ -129,7 +175,10 @@ function Guess(props) {
       <br />
       {renderSong(track)}
       <div>
-        {gameInPlay ? playerButtons() : ''}
+        {gameInPlay ? playerButtons() : chosenPlayer ? playerAnswer() : ''}
+      </div>
+      <div>
+        {guessTime ? guessTime : 'aa'}
       </div>
 
     </div>

@@ -28,3 +28,6 @@
   position: absolute;
 }
 
+.hidden {
+  opacity: 0;
+}
