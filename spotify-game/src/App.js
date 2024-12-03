@@ -4,6 +4,8 @@ import axios from 'axios';
 import { Route, Routes} from 'react-router-dom';
 import Trial from './trial';
 import Guess from './guess';
+import Table from './table';
+import Search from './search';
 const CLIENT_ID = process.env.REACT_APP_CLIENT_ID;
 
 function App() {
@@ -72,7 +74,10 @@ function App() {
     </div>
     <Routes>
       <Route exact path='/trial' element={<Trial/>} />
-      <Route exact path='/' element={<Guess requestMethod={request}/>} />
+      <Route exact path='/' element={<Search requestMethod={request}/>} />
+      <Route exact path='/table' element={<Table requestMethod={request}/>} />
+      <Route exact path='/guess' element={<Guess requestMethod={request}/>} />
+
     </Routes>
   </div>
   );
