@@ -1,16 +1,22 @@
-import {useEffect, useState} from 'react';
+import {useState} from 'react';
 import './App.css';
-import axios from 'axios';
-const CLIENT_ID = process.env.REACT_APP_CLIENT_ID;
 
 function Table() {
+
+  const [players, setPlayers] = useState(['me'])
+  const endpoint = '123456' // generate soemthing random in future
+
+  // fake endpoint
+  setPlayers(players + ['joe'])
   
- 
   return (
       <div className="App">
 
+        code:
+        <div>{endpoint}</div>
         players:
-        <div>bob</div>
+        <div>{players}</div>
+
         <button>start game</button>
 
       </div>

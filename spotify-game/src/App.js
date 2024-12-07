@@ -1,7 +1,7 @@
 import {useEffect, useState} from 'react';
 import './App.css';
 import axios from 'axios';
-import { Route, Routes} from 'react-router-dom';
+import { Route, Routes, useNavigate} from 'react-router-dom';
 import Trial from './trial';
 import Guess from './guess';
 import Table from './table';
@@ -15,31 +15,39 @@ function App() {
   const RESPONSE_TYPE = "token"
 
   const [token, setToken] = useState("")
+  const navigate = useNavigate();
 
 
   useEffect(() => {
       const hash = window.location.hash
       let token = window.localStorage.getItem("token")
 
-
       if (!token && hash) {
-          token = hash.substring(1).split("&").find(elem => elem.startsWith("access_token")).split("=")[1]
+        if( hash.substring(1).split("/").find(elem => elem.startsWith("access_token"))){
+          console.log(hash)
+          token = hash.substring(1).split("/").find(elem => elem.startsWith("access_token")).split("=")[1]
           window.location.hash = ""
           window.localStorage.setItem("token", token)
+        }
       }
-      console.log(token)
-
-      setToken(token)
 
       // poke api to see if token is valid
-      request('me').catch(() => {console.log('aaa');setToken(null)})
+      setToken(token)
+      request('me/top/tracks')
+      .then(()=>{
+        console.log('Success! ', token)
+        navigate("/");
+      })
+      .catch(() => {
+        console.log('Token invalid')
+        setToken(null)
+      })
 
 
   }, [])
 
-  console.log(token)
-
   const logout = () => {
+      navigate("/");
       setToken("")
       window.localStorage.removeItem("token")
   }
@@ -72,6 +80,7 @@ function App() {
               to Spotify</a>
         : <button onClick={logout}>Logout</button>}
     </div>
+    {token ?
     <Routes>
       <Route exact path='/trial' element={<Trial/>} />
       <Route exact path='/' element={<Search requestMethod={request}/>} />
@@ -79,6 +88,7 @@ function App() {
       <Route exact path='/guess' element={<Guess requestMethod={request}/>} />
 
     </Routes>
+    : ''}
   </div>
   );
 }

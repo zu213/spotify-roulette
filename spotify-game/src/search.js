@@ -20,11 +20,8 @@ function Search(props) {
   }
 
   const createTable = () => {
-    // setup endpoint
     navigate("/table");
-
   }
-
 
   return (
       <div className="App">
@@ -37,7 +34,6 @@ function Search(props) {
       `</form>
 
       <button onClick={createTable}>create table</button>
-
 
       </div>
   );
