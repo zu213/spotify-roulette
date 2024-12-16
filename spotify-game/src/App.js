@@ -32,6 +32,7 @@ function App() {
       }
 
       // poke api to see if token is valid
+      // Didn't work until i chaned the code to log for some reason
       setToken(token)
       request('me/top/tracks')
       .then(()=>{

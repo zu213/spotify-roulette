@@ -1,19 +1,29 @@
-import {useState} from 'react';
+import {useState, useEffect} from 'react';
 import './App.css';
+import axios from 'axios';
 
 function Table() {
 
+
   const [players, setPlayers] = useState(['me'])
-  const endpoint = '123456' // generate soemthing random in future
+  const endpointCode = '123456' // generate soemthing random in future
 
   // fake endpoint
-  setPlayers(players + ['joe'])
+  useEffect(() => {
+
+    setPlayers((players) => players + ['joe'])
+    const playerName= 'aaa'
+    // request to make table
+    axios.get(`http://localhost:5000/create/${playerName}`)
+
+
+}, [])
   
   return (
       <div className="App">
 
         code:
-        <div>{endpoint}</div>
+        <div>{endpointCode}</div>
         players:
         <div>{players}</div>
 
