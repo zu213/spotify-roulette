@@ -85,7 +85,7 @@ function App() {
     <Routes>
       <Route exact path='/trial' element={<Trial/>} />
       <Route exact path='/' element={<Search requestMethod={request}/>} />
-      <Route exact path='/table' element={<Table requestMethod={request}/>} />
+      <Route exact path='/table' element={<Table/>} />
       <Route exact path='/guess' element={<Guess requestMethod={request}/>} />
 
     </Routes>

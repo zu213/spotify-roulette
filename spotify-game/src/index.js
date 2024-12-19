@@ -7,7 +7,6 @@ import { HashRouter } from 'react-router-dom';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <React.StrictMode>
       <HashRouter>
       <head>
         <meta name="description" content="Zach Upstone's personal website" />
@@ -17,5 +16,4 @@ root.render(
 
       <App />
     </HashRouter>
-  </React.StrictMode>
 );

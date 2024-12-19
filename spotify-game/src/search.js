@@ -14,7 +14,10 @@ function Search(props) {
     // check if tabkle exists if so join
     await request(`me/top/tracks`)
     if(true){
-      navigate("/table");
+      const navigationOptions = ({
+        state: {existingTableCode :  searchKey }
+      });
+      navigate("/table", navigationOptions);
     }
     setTableNotFound(true)
   }

@@ -51,7 +51,7 @@ app.get('/table/:id/:player', (req, res) => {
 
   if(id){
     const table = tables.find((table) => table.code == id)
-    if(table && player){
+    if(table && playerName){
       const foundIndex = tables.findIndex(table => table.code == id);
       table.players.push(playerName)
       tables[foundIndex] = table;
