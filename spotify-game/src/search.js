@@ -7,6 +7,7 @@ function Search(props) {
   const request = props.requestMethod
   const navigate = useNavigate();
   const [searchKey, setSearchKey] = useState("")
+  const [playerName, setPlayerName] = useState("")
   const [tableNotFound, setTableNotFound] = useState(null)
 
   const findTable = async () => {
@@ -15,7 +16,7 @@ function Search(props) {
     await request(`me/top/tracks`)
     if(true){
       const navigationOptions = ({
-        state: {existingTableCode :  searchKey }
+        state: {existingTableCode :  searchKey, playerName: playerName }
       });
       navigate("/table", navigationOptions);
     }
@@ -23,7 +24,10 @@ function Search(props) {
   }
 
   const createTable = () => {
-    navigate("/table");
+    const navigationOptions = ({
+      state: { playerName: playerName }
+    });
+    navigate("/table", navigationOptions);
   }
 
   return (
@@ -32,6 +36,8 @@ function Search(props) {
           <form onSubmit={findTable}>
             table code
           <input type="text" onChange={e => setSearchKey(e.target.value)}/>
+          player name:
+          <input type="text" onChange={e => setPlayerName(e.target.value)}/>
           <button type={"submit"}>join table</button>
           {tableNotFound ? <div>Errror</div>: ''}
       `</form>

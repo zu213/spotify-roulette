@@ -7,13 +7,7 @@ import { HashRouter } from 'react-router-dom';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-      <HashRouter>
-      <head>
-        <meta name="description" content="Zach Upstone's personal website" />
-        <meta name="keywords" content="Zach Upstone, Zachary Upstone, Zach, Upstone, Graduate, Porgrammer, Developer, Artist" />
-        <meta name="author" content="Zach Upstone, Zachary Upstone" />
-      </head> 
-
+    <HashRouter>
       <App />
     </HashRouter>
 );
