@@ -5,7 +5,6 @@ import './App.css';
 import axios from 'axios';
 
 function Table(props) {
-  var gameStarted = false
   const location = useLocation();
   const state = location.state
   const existingTableCode = state?.existingTableCode || null
@@ -17,6 +16,7 @@ function Table(props) {
   const [players, setPlayers] = useState([state.playerName])
   const [playerId, setPlayerId] = useState(null)
   const [endpointCode, setEndpointCode] = useState(null)
+  const [gameStarted, setGameStarted] = useState(false)
   // generate soemthing random in future
 
   const playerIdRef = useRef(playerId);
@@ -74,6 +74,10 @@ function Table(props) {
       })
     }
   }
+
+  const startGame = () => {
+    setGameStarted(true);
+  };
   
   return (
       <div className="App">
@@ -82,8 +86,8 @@ function Table(props) {
         <div>{endpointCode}</div>
         players:
         <div>{players}</div>
-
-        {gameStarted ? <button onClick={gameStarted = true}>start game</button> : <Guess requestMethod={request}></Guess>}
+        <button onClick={startGame}>start game</button>
+        {gameStarted ? <Guess requestMethod={request}></Guess> : <div></div> }
 
       </div>
   );

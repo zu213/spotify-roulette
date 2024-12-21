@@ -145,7 +145,8 @@ useEffect(() => {
         localTime--
         //console.log(localTime)
 
-        setTimeLeft(timeLeft => timeLeft - 1)
+        setTimeLeft(localTime)
+        console.log(timeLeft)
       }, 1000);
       setIntervalId(id)
     }
