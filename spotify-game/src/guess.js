@@ -25,8 +25,9 @@ useEffect(() => {
   // observer that waits for iframe to load then adds a interval to keep trying to play the song until it is able to.
   const observer = new MutationObserver((mutations, observer) => {
     const element = document.getElementById('spotify');
+    
 
-      if (element && element.contentWindow.document && !iframeFound) {
+      if (element && element.contentWindow && !iframeFound) {
           observer.disconnect();
 
           window.addEventListener('message', (m) => {
@@ -128,10 +129,14 @@ useEffect(() => {
           setIntervalId(null)
           playPlayer('spotify')
         }
+        console.log('a')
+
         if(localTime < 45){
+          console.log('aa')
           setShowAlbum(true)
         }
         if(localTime < 30){
+          console.log('ab')
           setShowArtist(true)
         }
         if(localTime < 15){
@@ -169,7 +174,7 @@ useEffect(() => {
 
 
   return (
-    <div className="App">
+    <div className="map">
       <button onClick={() => playGame()}>Play game</button>
       {timeLeft}
       <br />

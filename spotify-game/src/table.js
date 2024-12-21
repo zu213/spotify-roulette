@@ -1,13 +1,17 @@
 import {useState, useEffect, useRef, useCallback } from 'react';
 import { replace, useLocation, useNavigate } from 'react-router-dom'
+import Guess from './guess';
 import './App.css';
 import axios from 'axios';
 
-function Table() {
+function Table(props) {
+  var gameStarted = false
   const location = useLocation();
   const state = location.state
   const existingTableCode = state?.existingTableCode || null
   const navigate = useNavigate();
+  const request = props.requestMethod
+
 
 
   const [players, setPlayers] = useState([state.playerName])
@@ -17,13 +21,27 @@ function Table() {
 
   const playerIdRef = useRef(playerId);
   const endpointCodeRef = useRef(endpointCode);
+
   useEffect(() => {
     playerIdRef.current = playerId; // Update the ref with the latest state on every render
+    console.log('aaa')
   }, [playerId]);
 
   useEffect(() => {
     endpointCodeRef.current = endpointCode; // Update the ref with the latest state on every render
+    console.log('aba, ', endpointCodeRef.current)
+
   }, [endpointCode]);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      axios.get(`http://localhost:5000/table/alive/${endpointCodeRef.current}/${playerIdRef.current}`).then((response) => {
+        setPlayers(response.data['players'].map(e => e.playerName).join(', '))
+      })
+    }, 30000)
+
+    return () => {clearInterval(intervalId)}
+  })
 
   const playerName= state.playerName
   // request to make table
@@ -33,11 +51,7 @@ function Table() {
       axios.get(`http://localhost:5000/create/${playerName}`).then((response) => {
       setEndpointCode(response.data['code'])
       setPlayerId(response.data['playerId'])
-      setInterval(() => {
-        axios.get(`http://localhost:5000/table/alive/${endpointCodeRef.current}/${playerIdRef.current}`).then((response) => {
-          setPlayers(response.data['players'].map(e => e.playerName).join(', '))
-        })
-      }, 30000)
+      console.log(endpointCodeRef.current)
     }).catch((e) => {
       const navigationOptions = {
         replace: true,
@@ -52,11 +66,6 @@ function Table() {
         setEndpointCode(existingTableCode)
         setPlayers(response.data['players'].map(e => e.playerName).join(', '))
         setPlayerId(response.data['playerId'])
-        setInterval(() => {
-          axios.get(`http://localhost:5000/table/alive/${endpointCodeRef.current}/${playerIdRef.current}`).then((response) => {
-            setPlayers(response.data['players'].map(e => e.playerName).join(', '))
-          })
-        }, 30000)
       }).catch((e) => {
         const navigationOptions = ({
           state: { error: e }
@@ -74,7 +83,7 @@ function Table() {
         players:
         <div>{players}</div>
 
-        <button>start game</button>
+        {gameStarted ? <button onClick={gameStarted = true}>start game</button> : <Guess requestMethod={request}></Guess>}
 
       </div>
   );
