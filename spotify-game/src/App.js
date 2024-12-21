@@ -8,6 +8,15 @@ import Table from './table';
 import Search from './search';
 const CLIENT_ID = process.env.REACT_APP_CLIENT_ID;
 
+function isJsonString(str) {
+  try {
+      JSON.parse(str);
+  } catch (e) {
+      return false;
+  }
+  return true;
+}
+
 function App() {
   
   const REDIRECT_URI = "http://localhost:3000"
@@ -20,23 +29,36 @@ function App() {
 
   useEffect(() => {
       const hash = window.location.hash
-      let token = window.localStorage.getItem("token")
+      let tokenObj = window.localStorage.getItem("token")
 
-      if (!token && hash) {
+      if (!tokenObj && hash) {
         if( hash.substring(1).split("/").find(elem => elem.startsWith("access_token"))){
-          console.log(hash)
-          token = hash.substring(1).split("/").find(elem => elem.startsWith("access_token")).split("=")[1]
+          console.log('hash', hash)
+          let token = hash.substring(1).split("/").find(elem => elem.startsWith("access_token")).split("=")[1]
           window.location.hash = ""
-          window.localStorage.setItem("token", token)
+          tokenObj = {token, age: Date.now()}
+          window.localStorage.setItem("token", JSON.stringify(tokenObj))
         }
       }
 
+      if(tokenObj){
+        console.log(tokenObj)
+        if(isJsonString(tokenObj)){
+          tokenObj = JSON.parse(tokenObj)
+        }
+        console.log(tokenObj, Date.now())
+        if(Date.now() - tokenObj.age > 60000){
+          window.localStorage.removeItem("token")
+        }
+      }
+
+      setToken(tokenObj ? tokenObj.token : null)
+
       // poke api to see if token is valid
       // Didn't work until i chaned the code to log for some reason
-      setToken(token)
       request('me/top/tracks')
-      .then(()=>{
-        console.log('Success! ', token)
+      .then((response)=>{
+        console.log('Success! ', tokenObj.token, response)
         navigate("/");
       })
       .catch(() => {
@@ -57,7 +79,6 @@ function App() {
     if(!token) return
 
     const requestObject = {}
-    // console.log('token: ',token)
     requestObject.headers =  {
       Authorization: `Bearer ${token}`
     }
