@@ -27,14 +27,11 @@ function checkInactivity() {
 function checkPlayers(){
   const currentTime = Date.now();
 
-  console.log('hello???')
   for(var tableIndex = 0; tableIndex < tables.length; tableIndex++){
     console.log(tables[tableIndex].playerIds)
     for(var playerIndex = 0; playerIndex < tables[tableIndex].playerIds.length; playerIndex++){
-      console.log(currentTime - tables[tableIndex].playerIds[playerIndex].lastActivityTime)
       if (currentTime - tables[tableIndex].playerIds[playerIndex].lastActivityTime >= playerInactivityTimeout){
         tables[tableIndex].playerIds.splice(playerIndex, 1)
-        console.log('deleted hah')
       }
     }
   }
@@ -45,6 +42,7 @@ app.use(cors());
 app.get('/create/:player', (req, res) => {
   var number
   const playerName = req.params.player
+  const tracks = ''
   const min = 0;
   const max = 999;
 
@@ -60,8 +58,7 @@ app.get('/create/:player', (req, res) => {
   if(number){
     const id = uuidv4()
     res.send({message: `Successfully created: code ${number}`, code: number, playerId: id});
-    tables.push({code: number, playerIds: [{id: id, lastActivityTime: Date.now(), playerName: playerName}]})
-    console.log('tables', tables)
+    tables.push({song:null, code: number, playerIds: [{tracks: tracks, id: id, lastActivityTime: Date.now(), playerName: playerName}]})
   }else{
     res.send(`Unable to create table :( limit hit`);
   }
@@ -70,13 +67,14 @@ app.get('/create/:player', (req, res) => {
 app.get('/table/:id/:player', (req, res) => {
   const id = req.params.id
   const playerName = req.params.player
+  const tracks = '';
 
   if(id){
     const table = tables.find((table) => table.code == id)
     if(table && playerName){
       const playerId = uuidv4()
       const foundIndex = tables.findIndex(table => table.code == id);
-      table.playerIds.push({id: playerId, lastActivityTime: Date.now(), playerName: playerName})
+      table.playerIds.push({id: playerId, lastActivityTime: Date.now(), playerName: playerName, tracks: tracks})
       tables[foundIndex] = table;
       res.send({message: `Table ${id} found`, players: table.playerIds, playerId: playerId});
     }else{
@@ -89,17 +87,38 @@ app.get('/table/:id/:player', (req, res) => {
 
 });
 
+app.get('/table/:id/song/:player', (req, res) => {
+  const id = req.params.id
+  const player = req.params.player
+
+  if(id){
+    const table = tables.find((table) => table.code == id)
+    if(table){
+      const foundIndex = tables.findIndex(table => table.code == id);
+      const player = table.playerIds.find((player => playerName == player))
+      const userTopTracks = player.tracks
+      const j = Math.floor(Math.random() * userTopTracks.length);
+      const chosenSong = userTopTracks[j]
+      const song = chosenSong
+      table.song = song;
+      tables[foundIndex] = table;
+      res.send({message: `Table ${id} found`, players: table.playerIds, playerId: playerId});
+    }else{
+      res.send(`Table ${id} not found`);
+    }
+  }
+  lastActivityTime  = Date.now()
+
+});
+
 app.get('/table/alive/:id/:playerid', (req, res) => {
   const tableCode = req.params.id
   const playerId = req.params.playerid
-  console.log(tableCode)
-  console.log(tables)
   const tableIndex = tables.findIndex(table => table.code == tableCode);
   console.log(tables[tableIndex])
   const playerIndex = tables[tableIndex].playerIds.findIndex(id => id.id == playerId)
-  console.log( tables[tableIndex].playerIds[playerIndex])
   tables[tableIndex].playerIds[playerIndex].lastActivityTime = Date.now()
-  res.send({message: `Table ${tableCode} alive message received for player ${playerId}`, players: tables[tableIndex].playerIds});
+  res.send({message: `Table ${tableCode} alive message received for player ${playerId}`, players: tables[tableIndex].playerIds, song: tables[tableIndex].song});
 
 
 });

@@ -1,5 +1,5 @@
-import {useState, useEffect, useRef, useCallback } from 'react';
-import { replace, useLocation, useNavigate } from 'react-router-dom'
+import {useState, useEffect, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom'
 import Guess from './guess';
 import './App.css';
 import axios from 'axios';
@@ -11,32 +11,35 @@ function Table(props) {
   const navigate = useNavigate();
   const request = props.requestMethod
 
-
-
   const [players, setPlayers] = useState([state.playerName])
   const [playerId, setPlayerId] = useState(null)
   const [endpointCode, setEndpointCode] = useState(null)
   const [gameStarted, setGameStarted] = useState(false)
+  const [song, setSong] = useState(null)
+  const [chosenPlayer, setChosenPlayer] = useState(null)
+
   // generate soemthing random in future
 
   const playerIdRef = useRef(playerId);
-  const endpointCodeRef = useRef(endpointCode);
+  const endpointCodeRef = useRef(endpointCode)
 
   useEffect(() => {
-    playerIdRef.current = playerId; // Update the ref with the latest state on every render
-    console.log('aaa')
+    playerIdRef.current = playerId
   }, [playerId]);
 
   useEffect(() => {
-    endpointCodeRef.current = endpointCode; // Update the ref with the latest state on every render
-    console.log('aba, ', endpointCodeRef.current)
-
+    endpointCodeRef.current = endpointCode
   }, [endpointCode]);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
       axios.get(`http://localhost:5000/table/alive/${endpointCodeRef.current}/${playerIdRef.current}`).then((response) => {
         setPlayers(response.data['players'].map(e => e.playerName).join(', '))
+        if(response.data['song']){
+          setSong(response.data['song'])
+          setChosenPlayer(response.data['chosenPlayer'])
+          setGameStarted(true)
+        }
       })
     }, 30000)
 
@@ -62,7 +65,6 @@ function Table(props) {
     }else{
       axios.get(`http://localhost:5000/table/${existingTableCode}/${playerName}`).then((response) => {
         console.log(response)
-        console.log(response.data['code']);
         setEndpointCode(existingTableCode)
         setPlayers(response.data['players'].map(e => e.playerName).join(', '))
         setPlayerId(response.data['playerId'])
@@ -76,19 +78,29 @@ function Table(props) {
   }
 
   const startGame = () => {
-    setGameStarted(true);
+    const i = Math.floor(Math.random() * players.length);
+    setChosenPlayer(players[i]);
+
+    axios.get(`http://localhost:5000/table/${existingTableCode}/song/${chosenPlayer}`).then((response) => {
+      console.log(response)
+
+    }).catch((e) => {
+      console.log('error', e)
+    })
   };
   
   return (
       <div className="App">
-
         code:
         <div>{endpointCode}</div>
         players:
         <div>{players}</div>
         <button onClick={startGame}>start game</button>
-        {gameStarted ? <Guess requestMethod={request}></Guess> : <div></div> }
-
+        {gameStarted ? <Guess requestMethod={request} 
+        players={players}
+         player={chosenPlayer}
+          tableCode={existingTableCode}
+          song={song}></Guess> : <div></div> }
       </div>
   );
 }

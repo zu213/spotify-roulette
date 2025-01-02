@@ -1,14 +1,15 @@
 import {useEffect, useState} from 'react';
 import './App.css';
+import axios from 'axios';
 
 let iframeFound = false;
 let songStarted = false
 
 function Guess(props) {
   // const [searchKey, setSearchKey] = useState("")
-  const [track, setTrack] = useState(null)
-  const [players, setPlayers] = useState(['me'])
-  const [gameInPlay, setGameInPlay] = useState(false)
+  const [track, setTrack] = useState(props.song)
+  const [players, setPlayers] = useState([])
+  const [gameInPlay, setGameInPlay] = useState(true)
   const [timeLeft, setTimeLeft] = useState(60);
   const [guessTime, setGuessTime] = useState(null);
   const [intervalId, setIntervalId] = useState(null)
@@ -21,35 +22,39 @@ function Guess(props) {
 
 
   const request = props.requestMethod
-useEffect(() => {
-  // observer that waits for iframe to load then adds a interval to keep trying to play the song until it is able to.
-  const observer = new MutationObserver((mutations, observer) => {
-    const element = document.getElementById('spotify');
-    
+  const player = props.player
+  setPlayers(props.players)
+  const existingTableCode = props.tableCode || null
 
-      if (element && element.contentWindow && !iframeFound) {
-          observer.disconnect();
+  useEffect(() => {
+    // observer that waits for iframe to load then adds a interval to keep trying to play the song until it is able to.
+    const observer = new MutationObserver((mutations, observer) => {
+      const element = document.getElementById('spotify');
+      
 
-          window.addEventListener('message', (m) => {
-            if(m.data.type === 'playback_update' && !songStarted){
-              clearInterval(intervalId)
-              startClock()
-              songStarted = true
-            }
-          }, [timeLeft])
-          const intervalId = setInterval(() => {
-            playPlayer('spotify');
-          }, 500);
+        if (element && element.contentWindow && !iframeFound) {
+            observer.disconnect();
 
-          iframeFound = true
-      }
-  }, [timeLeft]);
+            window.addEventListener('message', (m) => {
+              if(m.data.type === 'playback_update' && !songStarted){
+                clearInterval(intervalId)
+                startClock()
+                songStarted = true
+              }
+            }, [timeLeft])
+            const intervalId = setInterval(() => {
+              playPlayer('spotify');
+            }, 500);
 
-  observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-  });
-}, [])
+            iframeFound = true
+        }
+    }, [timeLeft]);
+
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+    });
+  }, [])
 
   const playPlayer = (id) => {
     const iframe =document.getElementById(id);
@@ -62,7 +67,6 @@ useEffect(() => {
   const getUsersTopSongs = async () => {
     const topTracks = await request(`me/top/tracks`)
 
-    const topTrackNames = topTracks.data.items.map((e) => {return(<div>{e.name}</div>)})
     console.log(topTracks.data.items)
     return topTracks.data.items
   }
@@ -96,28 +100,6 @@ useEffect(() => {
           <div></div>
     )
   }
-
-  const playGame = () => {
-    getUsersTopSongs().then((userTopTracks) => {
-
-      const i = Math.floor(Math.random() * players.length);
-      setChosenPlayer(players[i]);
-
-      const j = Math.floor(Math.random() * userTopTracks.length);
-      const chosenSong = userTopTracks[j]
-
-      setShowAlbum(false)
-      setShowArtist(false)
-      setShowSong(false)
-
-      setTrack(chosenSong)
-      setGameInPlay(true)
-  
-  
-        // clear interval on re-render to avoid memory leaks
-      });
-    }
-
     const startClock =  () => {
 
       setTimeLeft(60)
@@ -129,14 +111,11 @@ useEffect(() => {
           setIntervalId(null)
           playPlayer('spotify')
         }
-        console.log('a')
 
         if(localTime < 45){
-          console.log('aa')
           setShowAlbum(true)
         }
         if(localTime < 30){
-          console.log('ab')
           setShowArtist(true)
         }
         if(localTime < 15){
@@ -176,7 +155,6 @@ useEffect(() => {
 
   return (
     <div className="map">
-      <button onClick={() => playGame()}>Play game</button>
       {timeLeft}
       <br />
       {renderSong(track)}
