@@ -48,34 +48,43 @@ function Table(props) {
 
   const playerName= state.playerName
   var tableOwner = !existingTableCode;
-  // request to make table
-  if(!endpointCode){
-    if(!existingTableCode){
-      console.log('exist ' ,existingTableCode)
-      axios.post(`http://localhost:5000/create/${playerName}`,['aaaa', 'bbbbb']).then((response) => {
-      setEndpointCode(response.data['code'])
-      setPlayerId(response.data['playerId'])
-      console.log(endpointCodeRef.current)
-    }).catch((e) => {
-      const navigationOptions = {
-        replace: true,
-        state: JSON.stringify({ error: e })
-      };
-      navigate('/', navigationOptions)
-    })
-    }else{
-      axios.post(`http://localhost:5000/table/${existingTableCode}/${playerName}`,['aaaa', 'bbbbb']).then((response) => {
-        console.log(response)
-        setEndpointCode(existingTableCode)
-        setPlayers(response.data['players'].map(e => e.playerName).join(', '))
+  getUsersTopSongs().then((topTracks) => {
+    // request to make table
+    if(!endpointCode){
+      if(!existingTableCode){
+        console.log('exist ' ,existingTableCode)
+        axios.post(`http://localhost:5000/create/${playerName}`,topTracks).then((response) => {
+        setEndpointCode(response.data['code'])
         setPlayerId(response.data['playerId'])
+        console.log(endpointCodeRef.current)
       }).catch((e) => {
-        const navigationOptions = ({
-          state: { error: e }
-        });
+        const navigationOptions = {
+          replace: true,
+          state: JSON.stringify({ error: e })
+        };
         navigate('/', navigationOptions)
       })
+      }else{
+        axios.post(`http://localhost:5000/table/${existingTableCode}/${playerName}`,topTracks).then((response) => {
+          console.log(response)
+          setEndpointCode(existingTableCode)
+          setPlayers(response.data['players'].map(e => e.playerName).join(', '))
+          setPlayerId(response.data['playerId'])
+        }).catch((e) => {
+          const navigationOptions = ({
+            state: { error: e }
+          });
+          navigate('/', navigationOptions)
+        })
+      }
     }
+  })
+
+  const getUsersTopSongs = async () => {
+    const topTracks = await request(`me/top/tracks`)
+
+    console.log(topTracks.data.items)
+    return topTracks.data.items
   }
 
   const startGame = () => {
