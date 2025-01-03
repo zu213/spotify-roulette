@@ -43,8 +43,8 @@ function Table(props) {
     const intervalId = setInterval(() => {
       axios.get(`http://localhost:5000/table/alive/${endpointCodeRef.current}/${playerIdRef.current}`).then((response) => {
         setPlayers(response.data['players'].map(e => e.playerName).join(', '))
-        if(response.data['song']){
-          console.log('aaa')
+        if(response.data['song'] && !gameStarted){
+          console.log('avvvvvaa')
           setSong({id: response.data['song'].id, 
             name: response.data['song'].name,
             album: response.data['song'].album,

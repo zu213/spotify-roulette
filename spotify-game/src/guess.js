@@ -1,6 +1,5 @@
 import {useEffect, useState} from 'react';
 import './App.css';
-import axios from 'axios';
 
 let iframeFound = false;
 let songStarted = false
@@ -8,8 +7,8 @@ let songStarted = false
 function Guess(props) {
   // const [searchKey, setSearchKey] = useState("")
   const track = props.song
-  const players = props.players
-  const gameInPlay = true
+  const players = props.players.split(',')
+  const [gameInPlay, setGameInPlay] = useState(false)
   const [timeLeft, setTimeLeft] = useState(60);
   const [guessTime, setGuessTime] = useState(null);
   const [intervalId, setIntervalId] = useState(null)
@@ -18,30 +17,27 @@ function Guess(props) {
   const [showSong, setShowSong] = useState(false)
   //const [chosenPlayer, setChosenPlayer] = useState(null)
   const chosenPlayer = null;
-  //const showSong = false;
-  //const showArtist = false;
-  //const showAlbum = false;
-
-
-  const request = props.requestMethod
-  //const player = props.player
-  //setPlayers(props.players)
 
   useEffect(() => {
+    console.log('test')
+  }, [timeLeft])
+  useEffect(() => {
+    console.log('aac')
+
     // observer that waits for iframe to load then adds a interval to keep trying to play the song until it is able to.
-    const observer = new MutationObserver((mutations, observer) => {
       const element = document.getElementById('spotify');
       
       console.log('aac')
 
-        if (element && element.contentWindow && !iframeFound) {
-            observer.disconnect();
-
+        if (element && element.contentWindow && !iframeFound && !gameInPlay) {
+          
             window.addEventListener('message', (m) => {
               if(m.data.type === 'playback_update' && !songStarted){
                 clearInterval(intervalId)
+                setGameInPlay(true)
                 startClock()
                 songStarted = true
+
               }
             }, [timeLeft])
             const intervalId = setInterval(() => {
@@ -50,12 +46,6 @@ function Guess(props) {
 
             iframeFound = true
         }
-    }, [timeLeft]);
-
-    observer.observe(document.body, {
-        childList: true,
-        subtree: true,
-    });
   }, [])
 
   const playPlayer = (id) => {
@@ -118,10 +108,13 @@ function Guess(props) {
       if(localTime < 15){
         setShowSong(true)
       }
+      if(localTime < 0){
+        setGameInPlay(false)
+      }
       localTime--
       //console.log(localTime)
 
-      setTimeLeft(localTime)
+      setTimeLeft(() => localTime)
       console.log(timeLeft)
     }, 1000);
     setIntervalId(id)
