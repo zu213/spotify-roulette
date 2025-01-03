@@ -19,6 +19,12 @@ function Table(props) {
   const [chosenPlayer, setChosenPlayer] = useState(null)
 
   // generate soemthing random in future
+  const getUsersTopSongs = async () => {
+    const topTracks = await request(`me/top/tracks`)
+
+    console.log(topTracks.data.items)
+    return topTracks.data.items
+  }
 
   const playerIdRef = useRef(playerId);
   const endpointCodeRef = useRef(endpointCode)
@@ -30,24 +36,27 @@ function Table(props) {
   useEffect(() => {
     endpointCodeRef.current = endpointCode
   }, [endpointCode]);
+  var tableOwner = !existingTableCode;
+
 
   useEffect(() => {
     const intervalId = setInterval(() => {
       axios.get(`http://localhost:5000/table/alive/${endpointCodeRef.current}/${playerIdRef.current}`).then((response) => {
         setPlayers(response.data['players'].map(e => e.playerName).join(', '))
         if(response.data['song']){
-          setSong(response.data['song'])
+          console.log('aaa')
+          setSong({id: response.data['song'].id, 
+            name: response.data['song'].name,
+            album: response.data['song'].album,
+            artists: response.data['song'].artists
+          })
           setChosenPlayer(response.data['chosenPlayer'])
           setGameStarted(true)
         }
       })
     }, 30000)
 
-    return () => {clearInterval(intervalId)}
-  })
-
-  const playerName= state.playerName
-  var tableOwner = !existingTableCode;
+    const playerName= state.playerName
   getUsersTopSongs().then((topTracks) => {
     // request to make table
     if(!endpointCode){
@@ -80,12 +89,12 @@ function Table(props) {
     }
   })
 
-  const getUsersTopSongs = async () => {
-    const topTracks = await request(`me/top/tracks`)
 
-    console.log(topTracks.data.items)
-    return topTracks.data.items
-  }
+    return () => {clearInterval(intervalId)}
+  })
+
+  
+
 
   const startGame = () => {
     const i = Math.floor(Math.random() * players.length);
@@ -107,7 +116,9 @@ function Table(props) {
         players:
         <div>{players}</div>
         {tableOwner ? <button onClick={startGame}>start game</button> : <div></div>}
-        {gameStarted ? <Guess requestMethod={request} 
+        {gameStarted ? <Guess 
+        key={song.id}
+        requestMethod={request} 
         players={players}
          player={chosenPlayer}
           tableCode={existingTableCode}

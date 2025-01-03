@@ -7,30 +7,32 @@ let songStarted = false
 
 function Guess(props) {
   // const [searchKey, setSearchKey] = useState("")
-  const [track, setTrack] = useState(props.song)
-  const [players, setPlayers] = useState([])
-  const [gameInPlay, setGameInPlay] = useState(true)
+  const track = props.song
+  const players = props.players
+  const gameInPlay = true
   const [timeLeft, setTimeLeft] = useState(60);
   const [guessTime, setGuessTime] = useState(null);
   const [intervalId, setIntervalId] = useState(null)
   const [showAlbum, setShowAlbum] = useState(false)
   const [showArtist, setShowArtist] = useState(false)
   const [showSong, setShowSong] = useState(false)
-  const [chosenPlayer, setChosenPlayer] = useState(null)
-
-
+  //const [chosenPlayer, setChosenPlayer] = useState(null)
+  const chosenPlayer = null;
+  //const showSong = false;
+  //const showArtist = false;
+  //const showAlbum = false;
 
 
   const request = props.requestMethod
-  const player = props.player
-  setPlayers(props.players)
-  const existingTableCode = props.tableCode || null
+  //const player = props.player
+  //setPlayers(props.players)
 
   useEffect(() => {
     // observer that waits for iframe to load then adds a interval to keep trying to play the song until it is able to.
     const observer = new MutationObserver((mutations, observer) => {
       const element = document.getElementById('spotify');
       
+      console.log('aac')
 
         if (element && element.contentWindow && !iframeFound) {
             observer.disconnect();
@@ -64,13 +66,6 @@ function Guess(props) {
     iframe.contentWindow.postMessage({command: 'toggle'}, '*');
   }
 
-  const getUsersTopSongs = async () => {
-    const topTracks = await request(`me/top/tracks`)
-
-    console.log(topTracks.data.items)
-    return topTracks.data.items
-  }
-
   const renderSong = (localTrack) => {
     const size =  {width: '100%', height: '100%'}
     const uri=`spotify:track:${localTrack ? localTrack.id : ''}`
@@ -100,35 +95,37 @@ function Guess(props) {
           <div></div>
     )
   }
-    const startClock =  () => {
+  const startClock =  () => {
 
-      setTimeLeft(60)
-      if(intervalId) clearInterval(intervalId)
-      let localTime = 60
-      const id = setInterval(() => {
-        if(localTime < 1){
-          clearInterval(id)
-          setIntervalId(null)
-          playPlayer('spotify')
-        }
+    setTimeLeft(60)
+    if(intervalId) clearInterval(intervalId)
+    let localTime = 60
+    const id = setInterval(() => {
+      console.log(localTime)
 
-        if(localTime < 45){
-          setShowAlbum(true)
-        }
-        if(localTime < 30){
-          setShowArtist(true)
-        }
-        if(localTime < 15){
-          setShowSong(true)
-        }
-        localTime--
-        //console.log(localTime)
+      if(localTime < 1){
+        clearInterval(id)
+        setIntervalId(null)
+        playPlayer('spotify')
+      }
 
-        setTimeLeft(localTime)
-        console.log(timeLeft)
-      }, 1000);
-      setIntervalId(id)
-    }
+      if(localTime < 45){
+        setShowAlbum(true)
+      }
+      if(localTime < 30){
+        setShowArtist(true)
+      }
+      if(localTime < 15){
+        setShowSong(true)
+      }
+      localTime--
+      //console.log(localTime)
+
+      setTimeLeft(localTime)
+      console.log(timeLeft)
+    }, 1000);
+    setIntervalId(id)
+  }
 
 
     const playerButtons = () => {
