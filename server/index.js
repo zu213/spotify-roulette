@@ -1,5 +1,6 @@
 // Import the Express module
 const express = require('express');
+var bodyParser = require('body-parser')
 const cors = require('cors');
 const { v4: uuidv4 } = require('uuid');
 
@@ -11,6 +12,9 @@ let lastActivityTime = Date.now();
 const inactivityTimeout = timeToLive * 60 * 1000;
 const playerInactivityTimeout = 40 * 1000
 const tables = []
+
+var jsonParser = bodyParser.json()
+ var urlencodedParser = bodyParser.urlencoded({ extended: false })
 
 
 
@@ -39,10 +43,12 @@ function checkPlayers(){
 
 app.use(cors());
 
-app.get('/create/:player', (req, res) => {
+app.post('/create/:player', jsonParser,(req, res) => {
   var number
   const playerName = req.params.player
-  const tracks = ''
+  const tracks = req.body
+  console.log(req.body, 'aaab')
+
   const min = 0;
   const max = 999;
 
@@ -58,16 +64,17 @@ app.get('/create/:player', (req, res) => {
   if(number){
     const id = uuidv4()
     res.send({message: `Successfully created: code ${number}`, code: number, playerId: id});
+
     tables.push({song:null, code: number, playerIds: [{tracks: tracks, id: id, lastActivityTime: Date.now(), playerName: playerName}]})
   }else{
     res.send(`Unable to create table :( limit hit`);
   }
 });
 
-app.get('/table/:id/:player', (req, res) => {
+app.post('/table/:id/:player', (req, res) => {
   const id = req.params.id
   const playerName = req.params.player
-  const tracks = '';
+  const tracks = res.json({requestBody: req.body}) 
 
   if(id){
     const table = tables.find((table) => table.code == id)
@@ -89,20 +96,20 @@ app.get('/table/:id/:player', (req, res) => {
 
 app.get('/table/:id/song/:player', (req, res) => {
   const id = req.params.id
-  const player = req.params.player
+  const playerN = req.params.player
 
   if(id){
     const table = tables.find((table) => table.code == id)
     if(table){
       const foundIndex = tables.findIndex(table => table.code == id);
-      const player = table.playerIds.find((player => playerName == player))
+      const player = table.playerIds.find((player => player.playerName == playerN))
       const userTopTracks = player.tracks
       const j = Math.floor(Math.random() * userTopTracks.length);
       const chosenSong = userTopTracks[j]
       const song = chosenSong
       table.song = song;
       tables[foundIndex] = table;
-      res.send({message: `Table ${id} found`, players: table.playerIds, playerId: playerId});
+      res.send({message: `Table ${id} found`});
     }else{
       res.send(`Table ${id} not found`);
     }

@@ -47,11 +47,12 @@ function Table(props) {
   })
 
   const playerName= state.playerName
+  var tableOwner = !existingTableCode;
   // request to make table
   if(!endpointCode){
     if(!existingTableCode){
       console.log('exist ' ,existingTableCode)
-      axios.get(`http://localhost:5000/create/${playerName}`).then((response) => {
+      axios.post(`http://localhost:5000/create/${playerName}`,['aaaa', 'bbbbb']).then((response) => {
       setEndpointCode(response.data['code'])
       setPlayerId(response.data['playerId'])
       console.log(endpointCodeRef.current)
@@ -63,7 +64,7 @@ function Table(props) {
       navigate('/', navigationOptions)
     })
     }else{
-      axios.get(`http://localhost:5000/table/${existingTableCode}/${playerName}`).then((response) => {
+      axios.post(`http://localhost:5000/table/${existingTableCode}/${playerName}`,['aaaa', 'bbbbb']).then((response) => {
         console.log(response)
         setEndpointCode(existingTableCode)
         setPlayers(response.data['players'].map(e => e.playerName).join(', '))
@@ -79,9 +80,10 @@ function Table(props) {
 
   const startGame = () => {
     const i = Math.floor(Math.random() * players.length);
+    console.log(i, players[i])
     setChosenPlayer(players[i]);
-
-    axios.get(`http://localhost:5000/table/${existingTableCode}/song/${chosenPlayer}`).then((response) => {
+    console.log(existingTableCode)
+    axios.get(`http://localhost:5000/table/${endpointCode}/song/${players[i]}`).then((response) => {
       console.log(response)
 
     }).catch((e) => {
@@ -95,7 +97,7 @@ function Table(props) {
         <div>{endpointCode}</div>
         players:
         <div>{players}</div>
-        <button onClick={startGame}>start game</button>
+        {tableOwner ? <button onClick={startGame}>start game</button> : <div></div>}
         {gameStarted ? <Guess requestMethod={request} 
         players={players}
          player={chosenPlayer}
