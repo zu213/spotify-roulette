@@ -46,7 +46,6 @@ function App() {
         if(isJsonString(tokenObj)){
           tokenObj = JSON.parse(tokenObj)
         }
-        console.log(tokenObj, Date.now())
         if(Date.now() - tokenObj.age > 60000){
           window.localStorage.removeItem("token")
         }

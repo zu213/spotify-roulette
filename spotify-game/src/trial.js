@@ -79,7 +79,7 @@ const searchSong = async (e) => {
 
 function playPlayer(id) {
   const iframe =document.getElementById(id);
-  console.log('Interact: ', id)
+  //console.log('Interact: ', id)
   if(!iframe) return
 
   iframe.contentWindow.postMessage({command: 'toggle'}, '*');
@@ -101,7 +101,6 @@ const renderSong = (localTrack) => {
   const view='list';
   const theme='light';
   // console.log('uri: ', `https://embed.spotify.com/?uri=${uri}&view=${view}&theme=${theme}`)
-  console.log(localTrack)
    return (
       localTrack ?
        <div key={localTrack.id} className='Album-cover'>
