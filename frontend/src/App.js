@@ -2,8 +2,6 @@ import {useEffect, useState} from 'react';
 import './App.css';
 import axios from 'axios';
 import { Route, Routes, useNavigate} from 'react-router-dom';
-import Trial from './trial';
-import Guess from './guess';
 import Table from './table';
 import Search from './search';
 const CLIENT_ID = process.env.REACT_APP_CLIENT_ID;
@@ -95,7 +93,7 @@ function App() {
   return (
     <div className='App'>
     <div className="App-header">
-      <h1>Spotify React</h1>
+      <h1>Spotify Roulette</h1>
         {!token ?
           <a href={`${AUTH_ENDPOINT}?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=${RESPONSE_TYPE}&scope=user-top-read`}>Login
               to Spotify</a>
@@ -103,7 +101,6 @@ function App() {
     </div>
     {token ?
     <Routes>
-      <Route exact path='/trial' element={<Trial/>} />
       <Route exact path='/' element={<Search requestMethod={request}/>} />
       <Route exact path='/table' element={<Table requestMethod={request}/>} />
 
