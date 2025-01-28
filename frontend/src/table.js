@@ -16,6 +16,7 @@ function Table(props) {
   const [endpointCode, setEndpointCode] = useState(null)
   const [gameStarted, setGameStarted] = useState(false)
   const [song, setSong] = useState(null)
+  const [gameLoading, setGameLoading] = useState(false)
   const [chosenPlayer, setChosenPlayer] = useState(null)
 
   const playerIdRef = useRef(playerId);
@@ -23,7 +24,13 @@ function Table(props) {
   var tableOwner = !existingTableCode;
 
   const getUsersTopSongs = async () => {
-    const topTracks = await request(`me/top/tracks`)
+    const topTracks = await request(`me/top/tracks`).catch((e) => {
+      const navigationOptions = {
+        replace: true,
+        state: JSON.stringify({ error: e })
+      };
+      navigate('/', navigationOptions)
+    })
 
     return topTracks.data.items
   }
@@ -49,6 +56,7 @@ function Table(props) {
           })
           setChosenPlayer(response.data['chosenPlayer'])
           setGameStarted(true)
+          setGameLoading(false)
         }
       })
     }, 30000)
@@ -87,6 +95,7 @@ function Table(props) {
   }, [gameStarted, endpointCode, existingTableCode])
 
   const startGame = () => {
+    setGameLoading(true)
     const playerList = players.split(',')
     const i = Math.floor(Math.random() * playerList.length);
     setChosenPlayer(playerList[i]);
@@ -98,12 +107,13 @@ function Table(props) {
   };
   
   return (
-      <div className="App">
-        code:
-        <div>{endpointCode}</div>
-        players:
-        <div>{players}</div>
-        {tableOwner ? <button onClick={startGame}>start game</button> : <div></div>}
+      <div className="App-body">
+        <div className='Table-code'>Table code: {endpointCode} </div>
+        <div className='Players-list'>
+          <div className='Players-title'> Players:</div>
+          {players}
+        </div>
+        {tableOwner && !gameStarted ? (gameLoading ? <div>Loading... <span className="Table-loader"></span></div> : <button onClick={startGame}>start game</button> ) : <div></div>}
         {gameStarted ? 
         <Guess 
           key={song.id}

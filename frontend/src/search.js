@@ -38,6 +38,10 @@ function Search(props) {
   }
 
   const createTable = () => {
+    if(!playerName){
+      setError("No player name inputted")
+      return
+    }
     const navigationOptions = ({
       state: { playerName: playerName }
     });
@@ -45,22 +49,28 @@ function Search(props) {
   }
 
   return (
-    <div className="App">
+    <div className="App-body">
 
       <form onSubmit={findTable}>
-        <div>
-          <label>table code: </label>
-          <input id="tableCodeInput" type="text" onChange={e => setSearchKey(e.target.value)}/>
+        <div className='Search-form-container'>
+          <div className='Search-form'>
+            <div>
+              <label>Table code: </label>
+              <input id="tableCodeInput" type="text" onChange={e => setSearchKey(e.target.value)}/>
+            </div>
+            <div>
+              <label>Player name: </label>
+              <input id="playerNameInput" type="text" onChange={e => setPlayerName(e.target.value)}/>
+            </div>
+          </div>
         </div>
-        <div>
-          <label>player name: </label>
-          <input id="playerNameInput" type="text" onChange={e => setPlayerName(e.target.value)}/>
+        <div className='Search-buttons'>
+          <button type={"submit"}>join table</button>
+          <button onClick={createTable}>create table</button>
         </div>
-        <button type={"submit"}>join table</button>
         {tableNotFound ? <div>Error</div>: ''}
       </form>
 
-      <button onClick={createTable}>create table</button>
 
       {error ? <div>{error.message} </div> : <div></div>}
 

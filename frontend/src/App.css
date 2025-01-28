@@ -1,29 +1,137 @@
-.App {
-  text-align: center;
+.App-body {
+  margin: 10px;
 }
 
+/* Header */ 
+
 .App-header {
-  background-color: #282c34;
-  height: 20vh;
+  background-color: #101113;
+  height: 25vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
+  user-select: none;
+}
+
+.App-header h1 {
+  font-size: xx-large;
   color: white;
 }
 
-.Album-cover {
-  height: 20vh;
+.App-header a {
+  font-size: x-large;
+}
+
+.App-header button {
+  font-size: medium;
+}
+
+/* Search */
+
+.Search-form-container {
+  position: relative;
+  left: 35vw;
+}
+
+.Search-form{
+  text-align: left;
+  display: inline;
+}
+
+.Search-form input {
+  font: inherit;
+  padding: 0.2em 0.5em;
+  margin: 10px;
+}
+
+.Search-form label {
+  margin: 10px;
+  user-select: none;
+}
+
+.Search-buttons {
   display: inline-block;
 }
 
-.Album-cover img {
-  height: 40vh;
+.Search-buttons button {
+  margin: 10px;
+  user-select: none;
 }
 
-.player {
+/* Table */
+
+.Table-code {
+  font-size: x-large;
+  font-weight: bold;
+}
+
+.Table-loader {
+  top:3px;
+  position: relative;
+  border: 3px solid #f3f3f3; /* Light grey */
+  border-top: 3px solid #3498db; /* Blue */
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  animation: spin 2s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+
+.Players-list {
+  font-weight: bold;
+  padding: 10px;
+}
+
+.Players-title {
+  font-weight: 500;
+  text-decoration: underline;
+}
+
+/* Guess */
+
+.Guess div {
+  padding: 2px;
+}
+
+.Guess-timer {
+  font-weight: bold;
+  padding: 1px;
+  outline-style: dotted;
+  outline-width: 2px;
+  outline-color: #2ea44f;
+  width: 10vw;
+  position: relative;
+  left: 43vw;
+  margin: 4px;
+}
+
+.Album-cover {
+  width: 20vw;
+  height: 20vw;
+  display: inline-block;
+  outline-style: dashed;
+  outline-width: 2px;
+  outline-color: #2ea44f;
+}
+
+.Album-cover img {
+  width: 100%;
+}
+
+.Album-cover-hidden {
   opacity: 0;
+}
+
+.Player {
+  opacity: 0;
+  height: 0px;
   z-index: -10;
   position: absolute;
 }

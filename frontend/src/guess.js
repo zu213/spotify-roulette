@@ -52,22 +52,21 @@ const Guess = memo((props) => {
       const theme='light';
       return (
           localTrack ?
-          <div key={localTrack.id} className='Album-cover'>
+          <div key={localTrack.id}>
             <iframe
             id="spotify"
             title="Spotify"
-            className="player"
+            className="Player"
             src={`https://embed.spotify.com/?uri=${uri}&view=${view}&theme=${theme}`}
             width={size.width}
             height={size.height}
             allowtransparency="true"
             />
             <div>
-              {localTrack.album.images.length ? <img className={!showAlbum ? 'hidden' : ''} onClick={() => playPlayer('spotify')} src={localTrack.album.images[0].url} alt=""/> : <div>No Image</div>}
+              {localTrack.album.images.length ? <div className='Album-cover'><img className={!showAlbum ? 'Album-cover-hidden' : ''} onClick={() => playPlayer('spotify')} src={localTrack.album.images[0].url} alt=""/></div> : <div className='Album-cover'>No Image</div>}
+              {Array.from(localTrack.artists, (i) => (<div>Artist: <span className={!showArtist ? 'hidden' : ''}>{i.name},</span></div>))}
               <br />
-              {Array.from(localTrack.artists, (i) => (<span className={!showArtist ? 'hidden' : ''}>{i.name},</span>))}
-              <br />
-              <div className={!showSong ? 'hidden' : ''}>{localTrack.name}</div>
+              <div>Track: <span className={!showSong ? 'hidden' : ''}>{localTrack.name}</span></div>
             </div>
           </div> 
           :
@@ -109,17 +108,19 @@ const Guess = memo((props) => {
 
     const playerButtons = () => {
       return (
-        Array.from(players, (i) => (
+        <div> Players:&nbsp;
+         {Array.from(players, (i) => (
           <button onClick={() => {playerGuess(i)}}>
             {i}
           </button>
-        ))
+        ))}
+        </div>
       )
     }
 
     const playerAnswer = () => {
       return (
-        <span>{chosenPlayer}</span>
+        <span>Your answer: {chosenPlayer}</span>
       )
     }
 
@@ -135,19 +136,17 @@ const Guess = memo((props) => {
     }
 
   return (
-    <div className="map">
-      {timeLeft}
-      <br />
+    <div className="Guess">
+      <div className='Guess-timer'> Time left: {timeLeft} </div>
       {renderSong(track)}
       <div>
-        {gameInPlay}
-        {gameInPlay ? playerButtons() : chosenPlayer ? playerAnswer() : ''}
+        {gameInPlay && !chosenPlayer ? playerButtons() : chosenPlayer ? playerAnswer() : ''}
       </div>
       <div>
-        {guessTime ? guessTime : 'not guessed yet'}
+         {guessTime ? `Time of your guess: ${guessTime}` : '' }
       </div>
       <div>
-        Answer: {!gameInPlay ? answer(): 'player' }
+        Answer: {!gameInPlay ? answer() : '' }
       </div>
 
     </div>
