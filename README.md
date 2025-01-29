@@ -28,20 +28,33 @@ Start frontend by:
 ### Screenshots
 Below is screenshots fo the game flow,
 1) Logging in.  
-<img src="screenshots/login.png" alt="login" width="300" height="300"/>
+<p float="left">
+    <img src="screenshots/login.png" alt="login" width="300" height="300"/>
+</p>
 2) Create a table.  
-<img src="screenshots/create.png" alt="login" width="300" height="300"/>
-<img src="screenshots/table.png" alt="login" width="300" height="300"/>
+<p float="left">
+    <img src="screenshots/create.png" alt="login" width="300" height="300"/>
+    <img src="screenshots/table.png" alt="login" width="300" height="300"/>
+</p>
 3) Joining existing tables.  
-<img src="screenshots/join.png" alt="login" width="300" height="300"/>
-<img src="screenshots/fulltable.png" alt="login" width="300" height="300"/>
+<p float="left">
+    <kbd>
+        <img src="screenshots/join.png" alt="login" width="300" height="300"/>
+    </kbd>
+    <kbd>
+        <img src="screenshots/fulltable.png" alt="login" width="300" height="300"/>
+    </kbd>
+</p>
 4) Starting the game.  
-<img src="screenshots/loading.png" alt="login" width="300" height="300"/>
-<img src="screenshots/guess1.png" alt="login" width="300" height="300"/>
+<p float="left">
+    <img src="screenshots/loading.png" alt="login" width="300" height="300"/>
+    <img src="screenshots/guess1.png" alt="login" width="300" height="300"/>
+</p>
 5) Playing the game, the details are slowly revealed to aid with guessing while the song plays.  
-<img src="screenshots/guess2.png" alt="login" width="300" height="300"/>
-<img src="screenshots/guess3.png" alt="login" width="300" height="300"/>
-
+<p float="left">
+    <img src="screenshots/guess2.png" alt="login" width="300" height="300"/>
+    <img src="screenshots/guess3.png" alt="login" width="300" height="300"/>
+</p>
 
 
 
