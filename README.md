@@ -25,9 +25,25 @@ Start frontend by:
 - You'll then have to guess the player the song belongs to in the timelimit. 
 - That completes the game, after the countdown is up you'll be told the correct answer at the end.
 
-### Video
-Below is a video of the games basic flow.
-<img src="gifs/c.gif" alt="roulette game flow" width="600"/>
+### Screenshots
+Below is screenshots fo the game flow,
+1) Logging in.  
+<img src="screenshots/login.png" alt="login" width="300" height="300"/>
+2) Create a table.  
+<img src="screenshots/create.png" alt="login" width="300" height="300"/>
+<img src="screenshots/table.png" alt="login" width="300" height="300"/>
+3) Joining existing tables.  
+<img src="screenshots/join.png" alt="login" width="300" height="300"/>
+<img src="screenshots/fulltable.png" alt="login" width="300" height="300"/>
+4) Starting the game.  
+<img src="screenshots/loading.png" alt="login" width="300" height="300"/>
+<img src="screenshots/guess1.png" alt="login" width="300" height="300"/>
+5) Playing the game, the details are slowly revealed to aid with guessing while the song plays.  
+<img src="screenshots/guess2.png" alt="login" width="300" height="300"/>
+<img src="screenshots/guess3.png" alt="login" width="300" height="300"/>
+
+
+
 
 ### Future
 TODO: Make game have multiple rounds,

@@ -68,7 +68,7 @@ app.post('/create/:player', jsonParser,(req, res) => {
   }
 });
 
-app.post('/table/:id/:player', (req, res) => {
+app.post('/table/:id/:player', jsonParser,(req, res) => {
   const id = req.params.id
   const playerName = req.params.player
   const tracks = req.body
@@ -102,7 +102,7 @@ app.get('/table/:id/song/:player', (req, res) => {
       const player = table.playerIds.find((player => player.playerName == playerN))
       table.chosenPlayer = player.playerName
       const userTopTracks = player.tracks
-      const j = Math.floor(Math.random() * userTopTracks.length);
+      const j = Math.floor(Math.random() * (userTopTracks.length ?? 1));
       const chosenSong = userTopTracks[j]
       const song = chosenSong
       table.song = song;
