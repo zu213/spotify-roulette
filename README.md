@@ -29,12 +29,18 @@ Start frontend by:
 Below is screenshots fo the game flow,
 1) Logging in.  
 <p float="left">
-    <img src="screenshots/login.png" alt="login" width="300" height="300"/>
+    <kbd>
+        <img src="screenshots/login.png" alt="login" width="300" height="300"/>
+    </kbd>
 </p>
 2) Create a table.  
 <p float="left">
-    <img src="screenshots/create.png" alt="login" width="300" height="300"/>
-    <img src="screenshots/table.png" alt="login" width="300" height="300"/>
+    <kbd>
+        <img src="screenshots/create.png" alt="login" width="300" height="300"/>
+    </kbd>
+    <kbd>
+        <img src="screenshots/table.png" alt="login" width="300" height="300"/>
+    </kbd>
 </p>
 3) Joining existing tables.  
 <p float="left">
@@ -47,16 +53,22 @@ Below is screenshots fo the game flow,
 </p>
 4) Starting the game.  
 <p float="left">
-    <img src="screenshots/loading.png" alt="login" width="300" height="300"/>
-    <img src="screenshots/guess1.png" alt="login" width="300" height="300"/>
+    <kbd>
+        <img src="screenshots/loading.png" alt="login" width="300" height="300"/>
+    </kbd>
+    <kbd>
+        <img src="screenshots/guess1.png" alt="login" width="300" height="300"/>
+    </kbd>
 </p>
 5) Playing the game, the details are slowly revealed to aid with guessing while the song plays.  
 <p float="left">
-    <img src="screenshots/guess2.png" alt="login" width="300" height="300"/>
-    <img src="screenshots/guess3.png" alt="login" width="300" height="300"/>
+    <kbd>
+        <img src="screenshots/guess2.png" alt="login" width="300" height="300"/>
+    </kbd>    
+    <kbd>
+        <img src="screenshots/guess3.png" alt="login" width="300" height="300"/>
+    </kbd>
 </p>
-
-
 
 ### Future
 TODO: Make game have multiple rounds,
