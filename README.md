@@ -71,6 +71,6 @@ Below is screenshots fo the game flow,
 - That completes the game, after the countdown is up you'll be told the correct answer at the end.
 
 ## Future:
-TODO: Make game have multiple rounds,
-TODO: Make the players have a score and leaderboard
-TODO(potentially): make the server connection for table use websockets.
+TODO: Make game have multiple rounds  
+TODO: Make the players have a score and leaderboard  
+TODO(potentially): make the server connection for table use websockets  
