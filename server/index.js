@@ -7,6 +7,7 @@ const { WebSocketServer } = require('ws');
 const http = require('http');
 
 const PORT = process.argv[2] || 5000;
+const PORT2 = process.argv[3] || 5001;
 const timeToLive = 30
 // Create an Express application
 const app = express();
@@ -42,6 +43,29 @@ function checkPlayers(){
         tables[tableIndex].playerIds.splice(playerIndex, 1)
       }
     }
+  }
+}
+
+function createTable(){
+  var number
+
+  const min = 0;
+  const max = 999;
+
+  for(var i = 0 ; i < 5; i++){
+    
+    number = Math.floor(Math.random() * (max - min + 1)) + min;
+    if(tables.includes(number)){
+      number = null
+      continue
+    }
+
+  }
+  if(number){
+    tables.push({song:null, chosenPlayer:null, code: number, playerIds: []})
+    return {code: number, index: tables.length - 1}
+  }else{
+    console.log('limit hit')
   }
 }
 
@@ -133,23 +157,58 @@ app.get('/table/:id/song/:player', (req, res) => {
 
 wss.on('connection', (ws, req) => {
   const params = new URLSearchParams(req.url.replace('/?', ''));
-  const tableCode = params.get('id');
-  const playerId = params.get('playerid');
+  const tableCode = params.get('tableid');
+  const playerName = params.get('playername');
+  var code
 
-  const table = tables.find(t => t.code == tableCode);
-  if (!table) return ws.close();
 
-  const player = table.playerIds.find(p => p.id == playerId);
-  if (!player) return ws.close();
+  var tableIndex
+  if(tableCode){
+    tableIndex = tables.findIndex(t => t.code == tableCode);
+    if (!tableIndex) return ws.close();
+  } else {
+    // make a table
+    code, tableIndex = createTable()    
+  }
 
-  player.ws = ws;
-  player.lastActivityTime = Date.now();
-  console.log(`✅ Player ${playerId} connected to table ${tableCode}`);
+  //player.ws = ws;
+  //player.lastActivityTime = Date.now();
+  console.log(`Player ${playerName} connected to table ${tableCode}`);
 
   ws.on('message', msg => {
-    if (msg.toString() === 'ping') {
-      player.lastActivityTime = Date.now();
-      ws.send(JSON.stringify({ type: 'pong', ts: Date.now() }));
+    try {
+      const data = JSON.parse(msg);
+
+      switch (data.type) {
+        case 'submit_tracks':
+          // Equivalent to your POST /table route
+          if(tableCode){
+            tableIndex = tables.indexOf(t => t.code == tableCode);
+            if (!tableIndex) return ws.close();
+          } else {
+            // make a table
+            let tableResponse = createTable()
+            code = tableResponse['code']
+            tableIndex = tableResponse['index']
+          }
+          const id = uuidv4()
+          tables[tableIndex].playerIds.push({tracks: tracks, id: id, lastActivityTime: Date.now(), playerName: playerName})
+
+          ws.send(JSON.stringify({type: 'table_info', id, code}))
+          break;
+              
+
+        case 'ping':
+          ws.send(JSON.stringify({ type: 'pong', ts: Date.now() }));
+          break;
+
+        default:
+          ws.send(JSON.stringify({ error: 'Unknown message type' }));
+      }
+
+    } catch (err) {
+      console.error('Invalid message:', err);
+      ws.send(JSON.stringify({ error: 'Invalid JSON' }));
     }
   });
 
@@ -169,8 +228,15 @@ app.get('/table/alive/:id/:playerid', (req, res) => {
   res.send({message: `Table ${tableCode} alive message received for player ${playerId}`, players: tables[tableIndex].playerIds, song: tables[tableIndex].song, chosenPlayer: tables[tableIndex].chosenPlayer });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+
+
+
+//app.listen(PORT, () => {
+//  console.log(`Server is running on http://localhost:${PORT}`);
+//});
+
+server.listen(PORT, () => {
+  console.log(`HTTP + WS server running on http://localhost:${PORT2}`);
 });
 
 // Start the heartbeat, dies after X mins

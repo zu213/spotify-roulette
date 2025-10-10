@@ -17,13 +17,14 @@ function Table(props) {
   const [song, setSong] = useState(null)
   const [gameLoading, setGameLoading] = useState(false)
   const [chosenPlayer, setChosenPlayer] = useState(null)
+  const [heartbeat, setHeartbeat] = useState(null)
 
   const playerIdRef = useRef(playerId)
   const endpointCodeRef = useRef(endpointCode)
   const tableOwner = !existingTableCode
 
   const getUsersTopSongs = async () => {
-    const topTracks = await requestFromSpotify(`me/top/tracks`).catch((e) => {
+    const topTracks = await requestFromSpotify(props.token, `me/top/tracks`).catch((e) => {
       const navigationOptions = {
         replace: true,
         state: JSON.stringify({ error: e })
@@ -43,23 +44,38 @@ function Table(props) {
   }, [endpointCode])
 
 
+
   useEffect(() => {
 
-    const ws = new WebSocket(`ws://localhost:5000?id=${endpointCodeRef.current}&playerid=${playerIdRef.current}`)
+    getUsersTopSongs().then(topTracks => {
 
-    let heartbeatInterval
-    ws.onopen = () => {
-      console.log("Connected to server")
-      heartbeatInterval = setInterval(() => ws.send("ping"), 10000)
-    }
+      const playerName= state.playerName
 
-    ws.onmessage = event => {
-      console.log("Server:", event.data)
-    }
-    ws.onclose = () => {
-      console.log("Disconnected")
-      clearInterval(heartbeatInterval)
-    }
+      const websocket = 'ws://localhost:5000?playername=' + playerName + (existingTableCode ? `&tableid=${existingTableCode}` : '')
+      const ws = new WebSocket(websocket)
+      console.log(websocket)
+
+      ws.onopen = () => {
+        console.log("Connected to server")
+        setHeartbeat(setInterval(() => ws.send("ping"), 10000))
+
+        // send top tracks
+        ws.send(JSON.stringify({
+          type: "submit_tracks",
+          tableId: endpointCodeRef.current,
+          playerName: playerName,
+          tracks: topTracks
+        }))
+      }
+
+      ws.onmessage = event => {
+        console.log("Server:", event.data)
+      }
+      ws.onclose = () => {
+        console.log("Disconnected")
+        clearInterval(heartbeat)
+      }
+    })
 
 
     /*
@@ -78,9 +94,8 @@ function Table(props) {
         }
       })
     }, 30000)
-    */
+    
 
-    const playerName= state.playerName
     getUsersTopSongs().then((topTracks) => {
       // request to make table
       if(!endpointCode){
@@ -107,9 +122,9 @@ function Table(props) {
           })
         }
       }
-    })
+        
+    })*/
 
-    return () => {clearInterval(heartbeatInterval)}
   }, [gameStarted, endpointCode, existingTableCode, state.playerName, getUsersTopSongs, navigate])
 
   const startGame = () => {
