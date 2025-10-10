@@ -3,20 +3,26 @@ const express = require('express');
 var bodyParser = require('body-parser')
 const cors = require('cors');
 const { v4: uuidv4 } = require('uuid');
+const { WebSocketServer } = require('ws');
+const http = require('http');
 
 const PORT = process.argv[2] || 5000;
 const timeToLive = 30
 // Create an Express application
 const app = express();
+app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+
 let lastActivityTime = Date.now();
 const inactivityTimeout = timeToLive * 60 * 1000;
 const playerInactivityTimeout = 40 * 1000
 const tables = []
 
+const server = http.createServer(app);
+const wss = new WebSocketServer({ server });
 var jsonParser = bodyParser.json()
- var urlencodedParser = bodyParser.urlencoded({ extended: false })
-
-
+var urlencodedParser = bodyParser.urlencoded({ extended: false })
 
 function checkInactivity() {
   const currentTime = Date.now();
@@ -39,8 +45,16 @@ function checkPlayers(){
   }
 }
 
-app.use(cors());
+app.get('/table/:id' , (req, res) => {
+  const table = tables.find(e => e.code == req.params.id)
+  if(table) {
+    return res.send({table})
+  } else {
+    return res.status(404).send(`Table not found`)
+  }
+})
 
+// Create new table with one player
 app.post('/create/:player', jsonParser,(req, res) => {
   var number
   const playerName = req.params.player
@@ -68,6 +82,7 @@ app.post('/create/:player', jsonParser,(req, res) => {
   }
 });
 
+// add users to existing table
 app.post('/table/:id/:player', jsonParser,(req, res) => {
   const id = req.params.id
   const playerName = req.params.player
@@ -116,6 +131,34 @@ app.get('/table/:id/song/:player', (req, res) => {
 
 });
 
+wss.on('connection', (ws, req) => {
+  const params = new URLSearchParams(req.url.replace('/?', ''));
+  const tableCode = params.get('id');
+  const playerId = params.get('playerid');
+
+  const table = tables.find(t => t.code == tableCode);
+  if (!table) return ws.close();
+
+  const player = table.playerIds.find(p => p.id == playerId);
+  if (!player) return ws.close();
+
+  player.ws = ws;
+  player.lastActivityTime = Date.now();
+  console.log(`✅ Player ${playerId} connected to table ${tableCode}`);
+
+  ws.on('message', msg => {
+    if (msg.toString() === 'ping') {
+      player.lastActivityTime = Date.now();
+      ws.send(JSON.stringify({ type: 'pong', ts: Date.now() }));
+    }
+  });
+
+  ws.on('close', () => {
+    console.log(`Player ${playerId} disconnected`);
+    player.lastActivityTime = 0; // mark inactive
+  });
+});
+
 app.get('/table/alive/:id/:playerid', (req, res) => {
   const tableCode = req.params.id
   const playerId = req.params.playerid
@@ -124,8 +167,6 @@ app.get('/table/alive/:id/:playerid', (req, res) => {
   const playerIndex = tables[tableIndex].playerIds.findIndex(id => id.id == playerId)
   tables[tableIndex].playerIds[playerIndex]['lastActivityTime'] = Date.now()
   res.send({message: `Table ${tableCode} alive message received for player ${playerId}`, players: tables[tableIndex].playerIds, song: tables[tableIndex].song, chosenPlayer: tables[tableIndex].chosenPlayer });
-
-
 });
 
 app.listen(PORT, () => {

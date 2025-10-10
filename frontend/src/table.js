@@ -1,15 +1,14 @@
-import {useState, useEffect, useRef } from 'react';
+import {useState, useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import Guess from './guess';
-import './App.css';
-import axios from 'axios';
+import Guess from './guess'
+import { postPlayer, requestFromSpotify } from './bridge'
 
 function Table(props) {
-  const location = useLocation();
+  const location = useLocation()
   const state = location.state
   const existingTableCode = state?.existingTableCode || null
-  const navigate = useNavigate();
-  const request = props.requestMethod
+  const navigate = useNavigate()
+  const request = props.requestSpotify
 
   const [players, setPlayers] = useState(state.playerName)
   const [playerId, setPlayerId] = useState(null)
@@ -19,33 +18,52 @@ function Table(props) {
   const [gameLoading, setGameLoading] = useState(false)
   const [chosenPlayer, setChosenPlayer] = useState(null)
 
-  const playerIdRef = useRef(playerId);
+  const playerIdRef = useRef(playerId)
   const endpointCodeRef = useRef(endpointCode)
-  var tableOwner = !existingTableCode;
+  const tableOwner = !existingTableCode
 
   const getUsersTopSongs = async () => {
-    const topTracks = await request(`me/top/tracks`).catch((e) => {
+    const topTracks = await requestFromSpotify(`me/top/tracks`).catch((e) => {
       const navigationOptions = {
         replace: true,
         state: JSON.stringify({ error: e })
-      };
+      }
       navigate('/', navigationOptions)
     })
 
-    return topTracks.data.items
+    return topTracks?.data?.items
   }
 
   useEffect(() => {
     playerIdRef.current = playerId
-  }, [playerId]);
+  }, [playerId])
 
   useEffect(() => {
     endpointCodeRef.current = endpointCode
-  }, [endpointCode]);
+  }, [endpointCode])
 
 
   useEffect(() => {
-    const id =  setInterval(() => {
+
+    const ws = new WebSocket(`ws://localhost:5000?id=${endpointCodeRef.current}&playerid=${playerIdRef.current}`)
+
+    let heartbeatInterval
+    ws.onopen = () => {
+      console.log("Connected to server")
+      heartbeatInterval = setInterval(() => ws.send("ping"), 10000)
+    }
+
+    ws.onmessage = event => {
+      console.log("Server:", event.data)
+    }
+    ws.onclose = () => {
+      console.log("Disconnected")
+      clearInterval(heartbeatInterval)
+    }
+
+
+    /*
+    const id2 =  setInterval(() => {
       axios.get(`http://localhost:5000/table/alive/${endpointCodeRef.current}/${playerIdRef.current}`).then((response) => {
         setPlayers(response.data['players'].map(e => e.playerName).join(','))
         if(response.data['song'] && !gameStarted){
@@ -60,51 +78,51 @@ function Table(props) {
         }
       })
     }, 30000)
+    */
 
     const playerName= state.playerName
     getUsersTopSongs().then((topTracks) => {
       // request to make table
       if(!endpointCode){
         if(!existingTableCode){
-          axios.post(`http://localhost:5000/create/${playerName}`,topTracks).then((response) => {
+          // Create new table
+          postPlayer(playerName, topTracks).then((response) => {
           setEndpointCode(response.data['code'])
           setPlayerId(response.data['playerId'])
         }).catch((e) => {
-          const navigationOptions = {
-            replace: true,
-            state: JSON.stringify({ error: e })
-          };
+          const navigationOptions = {replace: true, state: JSON.stringify({ error: e })}
           navigate('/', navigationOptions)
         })
-        }else{
-          axios.post(`http://localhost:5000/table/${existingTableCode}/${playerName}`,topTracks).then((response) => {
+        } else {
+          // Join table
+          postPlayerToTable(existingTableCode, playerName, topTracks).then((response) => {
             setEndpointCode(existingTableCode)
             setPlayers(response.data['players'].map(e => e.playerName).join(', '))
             setPlayerId(response.data['playerId'])
           }).catch((e) => {
             const navigationOptions = ({
               state: { error: e }
-            });
+            })
             navigate('/', navigationOptions)
           })
         }
       }
     })
 
-    return () => {clearInterval(id)}
-  }, [gameStarted, endpointCode, existingTableCode])
+    return () => {clearInterval(heartbeatInterval)}
+  }, [gameStarted, endpointCode, existingTableCode, state.playerName, getUsersTopSongs, navigate])
 
   const startGame = () => {
     setGameLoading(true)
     const playerList = players.split(',')
-    const i = Math.floor(Math.random() * playerList.length);
-    setChosenPlayer(playerList[i]);
-    axios.get(`http://localhost:5000/table/${endpointCode}/song/${playerList[i]}`).then(() => {
+    const i = Math.floor(Math.random() * playerList.length)
+    setChosenPlayer(playerList[i])
+    getTablePlayer(endpointCode, playerList[i]).then(() => {
       //console.log(response)
     }).catch((e) => {
       console.log('error', e)
     })
-  };
+  }
   
   return (
       <div className="App-body">
@@ -124,7 +142,7 @@ function Table(props) {
           song={song} />
         : <div/> }
       </div>
-  );
+  )
 }
 
-export default Table;
+export default Table

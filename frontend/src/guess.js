@@ -1,7 +1,6 @@
-import {useEffect, useState, memo} from 'react';
-import './App.css';
+import {useEffect, useState, memo} from 'react'
 
-let iframeFound = false;
+let iframeFound = false
 let songStarted = false
 
 const Guess = memo((props) => {
@@ -10,17 +9,17 @@ const Guess = memo((props) => {
     const players = props.players.split(',')
     const player = props.player
     const [gameInPlay, setGameInPlay] = useState(true)
-    const [timeLeft, setTimeLeft] = useState(25);
-    const [guessTime, setGuessTime] = useState(null);
+    const [timeLeft, setTimeLeft] = useState(25)
+    const [guessTime, setGuessTime] = useState(null)
     const [intervalId, setIntervalId] = useState(null)
     const [showAlbum, setShowAlbum] = useState(false)
     const [showArtist, setShowArtist] = useState(false)
     const [showSong, setShowSong] = useState(false)
     const [chosenPlayer, setChosenPlayer] = useState(null)
-    //const chosenPlayer = null;
+    //const chosenPlayer = null
 
     useEffect(() => {
-        const element = document.getElementById('spotify');
+        const element = document.getElementById('spotify')
           if (element && element.contentWindow && !iframeFound) {
               window.addEventListener('message', (m) => {
                 if(m.data.type === 'playback_update' && !songStarted){
@@ -31,25 +30,25 @@ const Guess = memo((props) => {
                 }
               }, [timeLeft])
               const intervalId = setInterval(() => {
-                playPlayer('spotify');
-              }, 500);
+                playPlayer('spotify')
+              }, 500)
 
               iframeFound = true
           }
     }, [])
 
     const playPlayer = (id) => {
-      const iframe =document.getElementById(id);
+      const iframe =document.getElementById(id)
       if(!iframe) return
       console.log('Interact: ', id, iframe)
-      iframe.contentWindow.postMessage({command: 'toggle'}, '*');
+      iframe.contentWindow.postMessage({command: 'toggle'}, '*')
     }
 
     const renderSong = (localTrack) => {
       const size =  {width: '100%', height: '100%'}
       const uri=`spotify:track:${localTrack ? localTrack.id : ''}`
-      const view='list';
-      const theme='light';
+      const view='list'
+      const theme='light'
       return (
           localTrack ?
           <div key={localTrack.id}>
@@ -101,7 +100,7 @@ const Guess = memo((props) => {
         localTime--
 
         setTimeLeft(() => localTime)
-      }, 1000);
+      }, 1000)
       setIntervalId(id)
     }
 
@@ -150,7 +149,7 @@ const Guess = memo((props) => {
       </div>
 
     </div>
-  );
+  )
 })
 
-export default Guess;
+export default Guess

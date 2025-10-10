@@ -1,57 +1,50 @@
-import {useState, useEffect} from 'react';
-import { useNavigate, useLocation } from "react-router-dom";
-import './App.css';
+import { useState, useEffect } from 'react'
+import { useNavigate, useLocation } from "react-router-dom"
+import { getTable, getTableInfo } from './bridge'
 
-function Search(props) {
+function Search() {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const state = location.state
 
-  const request = props.requestMethod
-  const navigate = useNavigate();
   const [searchKey, setSearchKey] = useState("")
   const [playerName, setPlayerName] = useState("")
-  const [tableNotFound, setTableNotFound] = useState(null)
   const [error, setError] = useState(null)
 
-  const location = useLocation();
-  const state = location.state
-  
-
+  // Update error message
   useEffect(()  => {
-    if(state){
+    if (state) {
       const parsedState = JSON.parse(state)
-      console.log(parsedState.error)
-      setError(parsedState.error)
+      setError(JSON.stringify(parsedState.error))
     }
-  }, [])
+  }, [state])
 
   const findTable = async (e) => {
     e.preventDefault()
-    setTableNotFound(false)
     // check if tabkle exists if so join
-    await request(`me/top/tracks`)
-    if(true){
-      const navigationOptions = ({
-        state: {existingTableCode :  searchKey, playerName: playerName }
-      });
-      navigate("/table", navigationOptions);
-    }
-    setTableNotFound(true)
+    getTable(searchKey).then(_ => {
+      navigate("/table", {state: {existingTableCode: searchKey, playerName: playerName }})
+    })
+    .catch(e => {
+      if(e.status == 404) {
+        setError(`Table "${searchKey}" not found`)
+      }
+    })
   }
 
-  const createTable = () => {
+  const createTable = (e) => {
+    e.preventDefault()
+
     if(!playerName){
       setError("No player name inputted")
       return
     }
-    const navigationOptions = ({
-      state: { playerName: playerName }
-    });
-    navigate("/table", navigationOptions);
+    navigate("/table", {state: { playerName: playerName }})
   }
 
   return (
     <div className="App-body">
 
-      <form onSubmit={findTable}>
         <div className='Search-form-container'>
           <div className='Search-form'>
             <div>
@@ -65,17 +58,15 @@ function Search(props) {
           </div>
         </div>
         <div className='Search-buttons'>
-          <button type={"submit"}>join table</button>
+          <button onClick={findTable}>join table</button>
           <button onClick={createTable}>create table</button>
         </div>
-        {tableNotFound ? <div>Error</div>: ''}
-      </form>
 
 
-      {error ? <div>{error.message} </div> : <div></div>}
+      {error && <div>{error} </div>}
 
     </div>
-  );
+  )
 }
 
-export default Search;
+export default Search
