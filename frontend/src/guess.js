@@ -6,8 +6,9 @@ let songStarted = false
 const Guess = memo((props) => {
     // const [searchKey, setSearchKey] = useState("")
     const track = props.song
-    const players = props.players.split(',')
+    const players = props.players
     const player = props.player
+    const ws = props.ws
     const [gameInPlay, setGameInPlay] = useState(true)
     const [timeLeft, setTimeLeft] = useState(25)
     const [guessTime, setGuessTime] = useState(null)
@@ -19,23 +20,23 @@ const Guess = memo((props) => {
     //const chosenPlayer = null
 
     useEffect(() => {
-        const element = document.getElementById('spotify')
-          if (element && element.contentWindow && !iframeFound) {
-              window.addEventListener('message', (m) => {
-                if(m.data.type === 'playback_update' && !songStarted){
-                  clearInterval(intervalId)
-                  setGameInPlay(true)
-                  startClock()
-                  songStarted = true
-                }
-              }, [timeLeft])
-              const intervalId = setInterval(() => {
-                playPlayer('spotify')
-              }, 500)
+      const element = document.getElementById('spotify')
+      if (element && element.contentWindow && !iframeFound) {
+          window.addEventListener('message', (m) => {
+            if(m.data.type === 'playback_update' && !songStarted){
+              clearInterval(intervalId)
+              setGameInPlay(true)
+              startClock()
+              songStarted = true
+            }
+          }, [timeLeft])
+          const intervalId = setInterval(() => {
+            playPlayer('spotify')
+          }, 500)
 
-              iframeFound = true
-          }
-    }, [])
+          iframeFound = true
+      }
+    }, [gameInPlay])
 
     const playPlayer = (id) => {
       const iframe =document.getElementById(id)
@@ -108,9 +109,9 @@ const Guess = memo((props) => {
     const playerButtons = () => {
       return (
         <div> Players:&nbsp;
-         {Array.from(players, (i) => (
-          <button onClick={() => {playerGuess(i)}}>
-            {i}
+         {Array.from(players, (player) => (
+          <button onClick={() => {playerGuess(player)}}>
+            {player.playerName}
           </button>
         ))}
         </div>
@@ -119,19 +120,28 @@ const Guess = memo((props) => {
 
     const playerAnswer = () => {
       return (
-        <span>Your answer: {chosenPlayer}</span>
+        <span>Your answer: {chosenPlayer.playerName}</span>
       )
     }
 
     const answer = () => {
       return (
-        <span>{player}</span>
+        <span>{player?.playerName}</span>
       )
     }
 
-    const playerGuess = (i) => {
+    const playerGuess = (player) => {
       setGuessTime(timeLeft)
-      setChosenPlayer(i)
+      setChosenPlayer(player)
+      ws.send(JSON.stringify({
+        type: "guess_made",
+        playerId: player['id'],
+      }))
+    }
+
+    const startRound = () => {
+      props.startRound()
+      setGameInPlay(true)
     }
 
   return (
@@ -147,6 +157,11 @@ const Guess = memo((props) => {
       <div>
         Answer: {!gameInPlay ? answer() : '' }
       </div>
+      {!gameInPlay && 
+        <button onClick={startRound} >
+          Next round
+        </button>
+      }
 
     </div>
   )

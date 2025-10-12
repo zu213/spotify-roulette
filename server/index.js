@@ -120,6 +120,8 @@ wss.on('connection', (ws, req) => {
 
   if (!tableIndex) return ws.close();
 
+  lastActivityTime = Date.now()
+
   //player.ws = ws;
   //player.lastActivityTime = Date.now();
   console.log(`Player ${playerName} connected to table ${tableCode}`);
@@ -135,16 +137,16 @@ wss.on('connection', (ws, req) => {
           playerId = uuidv4()
           tables[tableIndex].playerIds.push({tracks: data.tracks, id: playerId, lastActivityTime: Date.now(), playerName: playerName, ws, score: 0, playingGame: false})
           playerIndex = tables[tableIndex].playerIds.length - 1
-          broadcastToTable(tableIndex, JSON.stringify({type: 'table_info', players: tables[tableIndex].playerIds.map(id => id.playerName)}))
+          broadcastToTable(tableIndex, {type: 'table_info', tableCode, players: tables[tableIndex].playerIds})
           break;
-              
 
         case 'ping':
-          if(!playerId || !tableCode || !playerIndex || !tableIndex) return
+          if(playerId == null || tableCode == null || playerIndex == null || tableIndex == null) return
           if(tableIndex < 0 || !tables[tableIndex]) {
             ws.send(JSON.stringify({type: 'no_table', message: 'invalid table'}))
             return
           }
+          console.log(`Ping for ${playerId}`)
           tables[tableIndex].playerIds[playerIndex]['lastActivityTime'] = Date.now()
           ws.send(JSON.stringify({type: 'pong', message: `Table ${tableCode} alive message received for player ${playerId}`}));
           break;
@@ -154,7 +156,7 @@ wss.on('connection', (ws, req) => {
           // Pick player and song
           const {chosenSong, chosenPlayer} = chooseSong(tableCode)
           tables[tableIndex].chosenPlayer = chosenPlayer
-          broadcastToTable(tableIndex, JSON.stringify({type:'start_round', song: chosenSong}))
+          broadcastToTable(tableIndex, {type:'start_round', song: chosenSong})
           for(let i = 0; i<tables[tableIndex].playerIds.length; i++){
             tables[tableIndex].playerIds[i].playingGame = true
           }
@@ -169,7 +171,9 @@ wss.on('connection', (ws, req) => {
             }
           }
           if(!gameInPlay){
-            broadcastToTable(tableIndex, JSON.stringify({type:'show_leaderboard', answer: table[tableIndex].chosenPlayer, scores: []}))
+            const player = tables[tableIndex].chosenPlayer
+            const { tracks, ws, ...strippedPlayer} = player
+            broadcastToTable(tableIndex, {type:'show_leaderboard', answer: strippedPlayer, scores: []})
           }
 
           break
