@@ -18,6 +18,7 @@ function Table(props) {
   const [gameLoading, setGameLoading] = useState(false)
   const [chosenPlayer, setChosenPlayer] = useState(null)
   const [heartbeat, setHeartbeat] = useState(null)
+  const [ws, setWs] = useState(null)
 
   const playerIdRef = useRef(playerId)
   const endpointCodeRef = useRef(endpointCode)
@@ -47,20 +48,25 @@ function Table(props) {
 
   useEffect(() => {
 
+
     getUsersTopSongs().then(topTracks => {
 
       const playerName= state.playerName
 
       const websocket = 'ws://localhost:5000?playername=' + playerName + (existingTableCode ? `&tableid=${existingTableCode}` : '')
-      const ws = new WebSocket(websocket)
+      let localWs = new WebSocket(websocket)
       console.log(websocket)
 
-      ws.onopen = () => {
+      localWs.onopen = () => {
         console.log("Connected to server")
-        setHeartbeat(setInterval(() => ws.send("ping"), 10000))
+        setHeartbeat(setInterval(() => {
+          if (localWs.readyState === WebSocket.OPEN) {
+            localWs.send(JSON.stringify({type: "ping"}))
+          }
+        }, 10000))
 
         // send top tracks
-        ws.send(JSON.stringify({
+        localWs.send(JSON.stringify({
           type: "submit_tracks",
           tableId: endpointCodeRef.current,
           playerName: playerName,
@@ -68,30 +74,47 @@ function Table(props) {
         }))
       }
 
-      ws.onmessage = event => {
+      localWs.onmessage = event => {
         console.log("Server:", event.data)
+        switch (event.data.type) {
+          case 'start_round':
+            if(event.data['song'] && !gameStarted){
+              setSong({id: response.data['song'].id, 
+                name: response.data['song'].name,
+                album: response.data['song'].album,
+                artists: response.data['song'].artists
+              })
+              setGameStarted(true)
+              setGameLoading(false)
+            }
+            break
+
+          case 'table_info':
+            setPlayers(event.data['players'].join(','))
+            break
+
+          case 'show_leaderboard':
+            setChosenPlayer(event.data['answer'])
+
+          default:
+            console.log("Server:", event.data)
+        }
       }
-      ws.onclose = () => {
+      localWs.onclose = () => {
         console.log("Disconnected")
         clearInterval(heartbeat)
+        setHeartbeat(null)
       }
+
+      setWs(localWs)
     })
+
 
 
     /*
     const id2 =  setInterval(() => {
       axios.get(`http://localhost:5000/table/alive/${endpointCodeRef.current}/${playerIdRef.current}`).then((response) => {
-        setPlayers(response.data['players'].map(e => e.playerName).join(','))
-        if(response.data['song'] && !gameStarted){
-          setSong({id: response.data['song'].id, 
-            name: response.data['song'].name,
-            album: response.data['song'].album,
-            artists: response.data['song'].artists
-          })
-          setChosenPlayer(response.data['chosenPlayer'])
-          setGameStarted(true)
-          setGameLoading(false)
-        }
+
       })
     }, 30000)
     
@@ -124,19 +147,21 @@ function Table(props) {
       }
         
     })*/
-
-  }, [gameStarted, endpointCode, existingTableCode, state.playerName, getUsersTopSongs, navigate])
+      return () => {
+        if (ws) {
+          ws.close()
+          setWs(null)
+        }
+        clearInterval(heartbeat)
+        setHeartbeat(null)
+      }
+  }, [])
 
   const startGame = () => {
     setGameLoading(true)
-    const playerList = players.split(',')
-    const i = Math.floor(Math.random() * playerList.length)
-    setChosenPlayer(playerList[i])
-    getTablePlayer(endpointCode, playerList[i]).then(() => {
-      //console.log(response)
-    }).catch((e) => {
-      console.log('error', e)
-    })
+    ws.send(JSON.stringify({
+      type: "start_round",
+    }))
   }
   
   return (

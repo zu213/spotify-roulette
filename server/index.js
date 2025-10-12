@@ -5,9 +5,9 @@ const cors = require('cors');
 const { v4: uuidv4 } = require('uuid');
 const { WebSocketServer } = require('ws');
 const http = require('http');
+const { table } = require('console');
 
 const PORT = process.argv[2] || 5000;
-const PORT2 = process.argv[3] || 5001;
 const timeToLive = 30
 // Create an Express application
 const app = express();
@@ -22,8 +22,6 @@ const tables = []
 
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
-var jsonParser = bodyParser.json()
-var urlencodedParser = bodyParser.urlencoded({ extended: false })
 
 function checkInactivity() {
   const currentTime = Date.now();
@@ -53,19 +51,43 @@ function createTable(){
   const max = 999;
 
   for(var i = 0 ; i < 5; i++){
-    
     number = Math.floor(Math.random() * (max - min + 1)) + min;
     if(tables.includes(number)){
       number = null
       continue
     }
-
   }
+
   if(number){
-    tables.push({song:null, chosenPlayer:null, code: number, playerIds: []})
+    tables.push({chosenPlayer:null, code: number, playerIds: []})
     return {code: number, index: tables.length - 1}
-  }else{
+  } else {
     console.log('limit hit')
+  }
+}
+
+function broadcastToTable(tableIndex, message) {
+  const table = tables[tableIndex];
+  if (!table) return;
+
+  const msg = JSON.stringify(message);
+
+  table.playerIds.forEach(player => {
+    if (player.ws && player.ws.readyState === 1) {
+      player.ws.send(msg);
+    }
+  });
+}
+
+function chooseSong(tableId){
+ const table = tables.find((table) => table.code == tableId)
+  if(table){
+    const i = Math.floor(Math.random() * (table.playerIds.length ?? 1));
+    const chosenPlayer = table.playerIds[i]
+    const userTopTracks = chosenPlayer.tracks
+    const j = Math.floor(Math.random() * (userTopTracks.length ?? 1));
+    const chosenSong = userTopTracks[j]
+    return {chosenSong, chosenPlayer}
   }
 }
 
@@ -78,98 +100,25 @@ app.get('/table/:id' , (req, res) => {
   }
 })
 
-// Create new table with one player
-app.post('/create/:player', jsonParser,(req, res) => {
-  var number
-  const playerName = req.params.player
-  const tracks = req.body
-
-  const min = 0;
-  const max = 999;
-
-  for(var i = 0 ; i < 5; i++){
-    
-    number = Math.floor(Math.random() * (max - min + 1)) + min;
-    if(tables.includes(number)){
-      number = null
-      continue
-    }
-
-  }
-  if(number){
-    const id = uuidv4()
-    res.send({message: `Successfully created: code ${number}`, code: number, playerId: id});
-
-    tables.push({song:null, chosenPlayer:null, code: number, playerIds: [{tracks: tracks, id: id, lastActivityTime: Date.now(), playerName: playerName}]})
-  }else{
-    res.send(`Unable to create table :( limit hit`);
-  }
-});
-
-// add users to existing table
-app.post('/table/:id/:player', jsonParser,(req, res) => {
-  const id = req.params.id
-  const playerName = req.params.player
-  const tracks = req.body
-  if(id){
-    const table = tables.find((table) => table.code == id)
-    if(table && playerName){
-      const playerId = uuidv4()
-      const foundIndex = tables.findIndex(table => table.code == id);
-      table.playerIds.push({id: playerId, lastActivityTime: Date.now(), playerName: playerName, tracks: tracks})
-      tables[foundIndex] = table;
-      res.send({message: `Table ${id} found`, players: table.playerIds, playerId: playerId});
-    }else{
-      res.send(`Table ${id} not found`);
-    }
-  }else{
-    res.send(`Unable to create table :( limit hit`);
-  }
-  lastActivityTime  = Date.now()
-
-});
-
-// choose a player to play a song from
-app.get('/table/:id/song/:player', (req, res) => {
-  const id = req.params.id
-  const playerN = req.params.player
-
-  if(id){
-    const table = tables.find((table) => table.code == id)
-    if(table){
-      const foundIndex = tables.findIndex(table => table.code == id);
-      const player = table.playerIds.find((player => player.playerName == playerN))
-      table.chosenPlayer = player.playerName
-      const userTopTracks = player.tracks
-      const j = Math.floor(Math.random() * (userTopTracks.length ?? 1));
-      const chosenSong = userTopTracks[j]
-      const song = chosenSong
-      table.song = song;
-      tables[foundIndex] = table;
-      res.send({message: `Table ${id} found`});
-    }else{
-      res.send(`Table ${id} not found`);
-    }
-  }
-  lastActivityTime  = Date.now()
-
-});
-
 wss.on('connection', (ws, req) => {
   const params = new URLSearchParams(req.url.replace('/?', ''));
-  const tableCode = params.get('tableid');
   const playerName = params.get('playername');
-  var code
-
-
+  var tableCode = params.get('tableid');
+  var playerId
   var tableIndex
+  var playerIndex
+
   if(tableCode){
+    // if given a table code the table alreayd exists
     tableIndex = tables.findIndex(t => t.code == tableCode);
-    if (!tableIndex) return ws.close();
   } else {
-    // make a table
-    code, tableIndex = createTable()    
+    // otherwise make a table
+    const tableInfo = createTable()  
+    tableCode = tableInfo.code
+    tableIndex = tableInfo.index
   }
+
+  if (!tableIndex) return ws.close();
 
   //player.ws = ws;
   //player.lastActivityTime = Date.now();
@@ -178,29 +127,52 @@ wss.on('connection', (ws, req) => {
   ws.on('message', msg => {
     try {
       const data = JSON.parse(msg);
+      console.log(data.type)
 
       switch (data.type) {
         case 'submit_tracks':
-          // Equivalent to your POST /table route
-          if(tableCode){
-            tableIndex = tables.indexOf(t => t.code == tableCode);
-            if (!tableIndex) return ws.close();
-          } else {
-            // make a table
-            let tableResponse = createTable()
-            code = tableResponse['code']
-            tableIndex = tableResponse['index']
-          }
-          const id = uuidv4()
-          tables[tableIndex].playerIds.push({tracks: tracks, id: id, lastActivityTime: Date.now(), playerName: playerName})
-
-          ws.send(JSON.stringify({type: 'table_info', id, code}))
+          // Add the player relating to thsi websocker
+          playerId = uuidv4()
+          tables[tableIndex].playerIds.push({tracks: data.tracks, id: playerId, lastActivityTime: Date.now(), playerName: playerName, ws, score: 0, playingGame: false})
+          playerIndex = tables[tableIndex].playerIds.length - 1
+          broadcastToTable(tableIndex, JSON.stringify({type: 'table_info', players: tables[tableIndex].playerIds.map(id => id.playerName)}))
           break;
               
 
         case 'ping':
-          ws.send(JSON.stringify({ type: 'pong', ts: Date.now() }));
+          if(!playerId || !tableCode || !playerIndex || !tableIndex) return
+          if(tableIndex < 0 || !tables[tableIndex]) {
+            ws.send(JSON.stringify({type: 'no_table', message: 'invalid table'}))
+            return
+          }
+          tables[tableIndex].playerIds[playerIndex]['lastActivityTime'] = Date.now()
+          ws.send(JSON.stringify({type: 'pong', message: `Table ${tableCode} alive message received for player ${playerId}`}));
           break;
+
+        case 'start_round':
+          //, players: tables[tableIndex].playerIds, song: tables[tableIndex].song, chosenPlayer: tables[tableIndex].chosenPlayer }
+          // Pick player and song
+          const {chosenSong, chosenPlayer} = chooseSong(tableCode)
+          tables[tableIndex].chosenPlayer = chosenPlayer
+          broadcastToTable(tableIndex, JSON.stringify({type:'start_round', song: chosenSong}))
+          for(let i = 0; i<tables[tableIndex].playerIds.length; i++){
+            tables[tableIndex].playerIds[i].playingGame = true
+          }
+          break;
+
+        case 'guess_made':
+          tables[tableIndex].playerIds[playerIndex].playingGame = false
+          var gameInPlay = false
+          for(let i = 0; i<tables[tableIndex].playerIds.length; i++){
+            if(tables[tableIndex].playerIds[i].playingGame == true) {
+              gameInPlay = true
+            }
+          }
+          if(!gameInPlay){
+            broadcastToTable(tableIndex, JSON.stringify({type:'show_leaderboard', answer: table[tableIndex].chosenPlayer, scores: []}))
+          }
+
+          break
 
         default:
           ws.send(JSON.stringify({ error: 'Unknown message type' }));
@@ -213,30 +185,15 @@ wss.on('connection', (ws, req) => {
   });
 
   ws.on('close', () => {
+    // if mising data it will be cleaned up by gc
+    if(!tableIndex || !playerIndex) return
     console.log(`Player ${playerId} disconnected`);
-    player.lastActivityTime = 0; // mark inactive
+    tables[tableIndex].playerIds.splice(playerIndex, 1)
   });
 });
 
-app.get('/table/alive/:id/:playerid', (req, res) => {
-  const tableCode = req.params.id
-  const playerId = req.params.playerid
-  const tableIndex = tables.findIndex(table => table.code == tableCode);
-  if(tableIndex < 0 || !tables[tableIndex]) res.send({message: 'invalid table'})
-  const playerIndex = tables[tableIndex].playerIds.findIndex(id => id.id == playerId)
-  tables[tableIndex].playerIds[playerIndex]['lastActivityTime'] = Date.now()
-  res.send({message: `Table ${tableCode} alive message received for player ${playerId}`, players: tables[tableIndex].playerIds, song: tables[tableIndex].song, chosenPlayer: tables[tableIndex].chosenPlayer });
-});
-
-
-
-
-//app.listen(PORT, () => {
-//  console.log(`Server is running on http://localhost:${PORT}`);
-//});
-
 server.listen(PORT, () => {
-  console.log(`HTTP + WS server running on http://localhost:${PORT2}`);
+  console.log(`HTTP + WS server running on http://localhost:${PORT}`);
 });
 
 // Start the heartbeat, dies after X mins

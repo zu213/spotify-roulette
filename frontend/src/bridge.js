@@ -16,15 +16,6 @@ export const requestFromSpotify = async (token, endpoint, searchKey=null) => {
   return await axios.get(`https://api.spotify.com/v1/${endpoint}`, requestObject)
 }
 
-
-export async function postPlayer(playerName, topTracks) {
-  return axios.post(`http://localhost:5000/create/${playerName}`, topTracks)
-}
-
-export async function postPlayerToTable(tableCode, playerName, topTracks) {
-  return axios.post(`http://localhost:5000/table/${tableCode}/${playerName}`, topTracks)
-}
-
 export async function getTablePlayer(tableCode, player){
   return axios.get(`http://localhost:5000/table/${tableCode}/song/${player}`)
 }
