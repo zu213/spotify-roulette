@@ -12,8 +12,7 @@ button {
   user-select: none;
   appearance: none;
   background-color: #2ea44f;
-  border: 1px solid rgba(27, 31, 35, .15);
-  border-radius: 6px;
+  border: 2px solid rgba(27, 31, 35);
   box-shadow: rgba(27, 31, 35, .1) 0 1px 0;
   box-sizing: border-box;
   color: #fff;

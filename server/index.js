@@ -137,7 +137,8 @@ wss.on('connection', (ws, req) => {
           playerId = uuidv4()
           tables[tableIndex].playerIds.push({tracks: data.tracks, id: playerId, lastActivityTime: Date.now(), playerName: playerName, ws, score: 0, playingGame: false})
           playerIndex = tables[tableIndex].playerIds.length - 1
-          broadcastToTable(tableIndex, {type: 'table_info', tableCode, players: tables[tableIndex].playerIds})
+          const scores = tables[tableIndex].playerIds.map(player => ({playerName: player['playerName'], score: player['score']}))
+          broadcastToTable(tableIndex, {type: 'table_info', tableCode, players: tables[tableIndex].playerIds, scores})
           break;
 
         case 'ping':
@@ -164,16 +165,22 @@ wss.on('connection', (ws, req) => {
 
         case 'guess_made':
           tables[tableIndex].playerIds[playerIndex].playingGame = false
+
+          const answerPlayer = tables[tableIndex].chosenPlayer
+          if(answerPlayer.id == data['playerId']) tables[tableIndex].playerIds[playerIndex].score += 1
+
           var gameInPlay = false
           for(let i = 0; i<tables[tableIndex].playerIds.length; i++){
             if(tables[tableIndex].playerIds[i].playingGame == true) {
               gameInPlay = true
             }
           }
+
           if(!gameInPlay){
-            const player = tables[tableIndex].chosenPlayer
-            const { tracks, ws, ...strippedPlayer} = player
-            broadcastToTable(tableIndex, {type:'show_leaderboard', answer: strippedPlayer, scores: []})
+            const { tracks, ws, ...strippedPlayer} = answerPlayer
+
+            const scores = tables[tableIndex].playerIds.map(player => ({playerName: player['playerName'], score: player['score']}))
+            broadcastToTable(tableIndex, {type:'show_leaderboard', answer: strippedPlayer, scores})
           }
 
           break

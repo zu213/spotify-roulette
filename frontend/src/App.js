@@ -1,9 +1,9 @@
 import {useEffect, useState} from 'react'
 import './styles/App.css'
-import { requestFromSpotify } from './bridge'
+import { requestFromSpotify } from './helper/bridge'
 import { Route, Routes, useNavigate} from 'react-router-dom'
-import Table from './table'
-import Search from './search'
+import Game from './pages/Game'
+import Join from './pages/Join'
 const CLIENT_ID = process.env.REACT_APP_CLIENT_ID
 
 function isJsonString(str) {
@@ -84,8 +84,8 @@ function App() {
     </div>
     {token &&
       <Routes>
-        <Route exact path='/' element={<Search/>} />
-        <Route exact path='/table' element={<Table token={token}/>} />
+        <Route exact path='/' element={<Join/>} />
+        <Route exact path='/table' element={<Game token={token}/>} />
       </Routes>
     }
   </div>

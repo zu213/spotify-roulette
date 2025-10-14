@@ -7,7 +7,7 @@ const Guess = (props) => {
     const ws = props.ws
     // Game state: loading, in-play, done
     const [gameState, setGameState] = useState('loading')
-    const [timeLeft, setTimeLeft] = useState(25)
+    const [timeLeft, setTimeLeft] = useState(30)
     const [guessTime, setGuessTime] = useState(null)
     const [showAlbum, setShowAlbum] = useState(false)
     const [showArtist, setShowArtist] = useState(false)
@@ -84,7 +84,7 @@ const Guess = (props) => {
 
     const startClock = () => {
       if (intervalId) clearInterval(intervalId)
-      setTimeLeft(25)
+      setTimeLeft(30)
 
       const id = setInterval(() => {
         setTimeLeft(prev => {
@@ -139,7 +139,7 @@ const Guess = (props) => {
 
   return (
     <div className="Guess">
-      {gameState === 'loading' && <div>Loading... <span className="Table-loader"></span></div>}
+      {gameState === 'loading' && <div>Loading... <span className="loader"></span></div>}
       <div className={gameState === 'loading' ? 'none' : ''}>
         <div className='Guess-timer'> Time left: {timeLeft} </div>
         {renderSong(track)}

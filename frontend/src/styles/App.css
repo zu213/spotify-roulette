@@ -1,4 +1,4 @@
-.App-body {
+.game, .join {
   margin: 10px;
 }
 
@@ -27,39 +27,6 @@
   font-size: medium;
 }
 
-/* Search */
-
-.Search-form-container {
-  position: relative;
-  left: 35vw;
-}
-
-.Search-form{
-  text-align: left;
-  display: inline;
-}
-
-.Search-form input {
-  font: inherit;
-  padding: 0.2em 0.5em;
-  margin: 10px;
-  width: 20vw;
-}
-
-.Search-form label {
-  margin: 10px;
-  user-select: none;
-}
-
-.Search-buttons {
-  display: inline-block;
-}
-
-.Search-buttons button {
-  margin: 10px;
-  user-select: none;
-}
-
 /* Table */
 
 .Table-code {
@@ -67,7 +34,7 @@
   font-weight: bold;
 }
 
-.Table-loader {
+.loader {
   top:3px;
   position: relative;
   border: 3px solid #f3f3f3; /* Light grey */

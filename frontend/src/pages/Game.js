@@ -1,9 +1,10 @@
-import {useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import Guess from './guess'
-import { requestFromSpotify } from './bridge'
+import Guess from './Guess'
+import Leaderboard from './Leaderboard'
+import { requestFromSpotify } from '../helper/bridge'
 
-function Table(props) {
+function Game(props) {
   const location = useLocation()
   const state = location.state
   const existingTableCode = state?.existingTableCode || null
@@ -18,15 +19,13 @@ function Table(props) {
   const [chosenPlayer, setChosenPlayer] = useState(null)
   const [heartbeat, setHeartbeat] = useState(null)
   const [ws, setWs] = useState(null)
+  const [scores, setScores] = useState([])
 
   const tableOwner = !existingTableCode
 
   const getUsersTopSongs = async () => {
-    const topTracks = await requestFromSpotify(props.token, `me/top/tracks`).catch((e) => {
-      const navigationOptions = {
-        replace: true,
-        state: JSON.stringify({ error: e })
-      }
+    const topTracks = await requestFromSpotify(props.token, `me/top/tracks`).catch((error) => {
+      const navigationOptions = { replace: true, state: JSON.stringify({ error })}
       navigate('/', navigationOptions)
     })
 
@@ -76,10 +75,12 @@ function Table(props) {
           case 'table_info':
             setPlayers(data['players'])
             setTableCode(data['tableCode'])
+            setScores(data['scores'])
             break
 
           case 'show_leaderboard':
             setChosenPlayer(data['answer'])
+            setScores(data['scores'])
 
           default:
             break
@@ -116,8 +117,8 @@ function Table(props) {
   }
   
   return (
-      <div className="App-body">
-        {tableLoading ? <div>Loading... <span className="Table-loader"></span></div>
+      <div className="game">
+        {tableLoading ? <div>Loading... <span className="loader"></span></div>
         :
         <>
           <div className='Table-code'>Table code: {tableCode} </div>
@@ -126,7 +127,7 @@ function Table(props) {
             {players.map(id => id.playerName).join(',')}
           </div>
           {tableOwner && !gameStarted && <button onClick={startRound}>start game</button>}
-          {gameStarted ? 
+          {gameStarted && 
           <Guess 
             key={song.id}
             requestMethod={request} 
@@ -136,11 +137,12 @@ function Table(props) {
             startRound={startRound}
             tableCode={existingTableCode}
             song={song} />
-          : <div/> }
+          }
+          <Leaderboard scores={scores} />
         </>
         }
       </div>
   )
 }
 
-export default Table
+export default Game

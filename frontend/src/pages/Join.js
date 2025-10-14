@@ -1,8 +1,10 @@
+import '../styles/Join.css'
+
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { getTable } from './bridge'
+import { getTable } from '../helper/bridge'
 
-function Search() {
+function Join() {
   const navigate = useNavigate()
   const location = useLocation()
   const state = location.state
@@ -43,28 +45,31 @@ function Search() {
   }
 
   return (
-    <div className='App-body'>
-        <div className='Search-form-container'>
-          <div className='Search-form'>
-            <div>
-              <label>Table code: </label>
-              <input type='text' onChange={e => setSearchKey(e.target.value)}/>
-            </div>
-            <div>
-              <label>Player name: </label>
-              <input type='text' onChange={e => setPlayerName(e.target.value)}/>
-            </div>
+    <div className='join'>
+      <div className='join-form-container'>
+        <div className='join-form'>
+          <div>
+            <label>Table code: </label>
+            <input type='text' onChange={e => setSearchKey(e.target.value)}/>
+          </div>
+          <div>
+            <label>Player name: </label>
+            <input type='text' onChange={e => setPlayerName(e.target.value)}/>
           </div>
         </div>
-        <div className='Search-buttons'>
+      </div>
+      <div className='join-buttons'>
+        <div className='join-button'>
           <button onClick={findTable}>join table</button>
+        </div>
+        <div className='join-button'>
           <button onClick={createTable}>create table</button>
         </div>
+      </div>
 
       {error && <div>{error}</div>}
-
     </div>
   )
 }
 
-export default Search
+export default Join
