@@ -1,7 +1,7 @@
-import {useState, useEffect, useRef } from 'react'
+import {useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import Guess from './guess'
-import { postPlayer, requestFromSpotify } from './bridge'
+import { requestFromSpotify } from './bridge'
 
 function Table(props) {
   const location = useLocation()
@@ -11,16 +11,14 @@ function Table(props) {
   const request = props.requestSpotify
 
   const [players, setPlayers] = useState([])
-  const [playerId, setPlayerId] = useState(null)
   const [tableCode, setTableCode] = useState(null)
   const [gameStarted, setGameStarted] = useState(false)
   const [song, setSong] = useState(null)
-  const [gameLoading, setGameLoading] = useState(false)
+  const [gameLoading, setGameLoading] = useState(true)
   const [chosenPlayer, setChosenPlayer] = useState(null)
   const [heartbeat, setHeartbeat] = useState(null)
   const [ws, setWs] = useState(null)
 
-  const playerIdRef = useRef(playerId)
   const tableOwner = !existingTableCode
 
   const getUsersTopSongs = async () => {
@@ -34,12 +32,6 @@ function Table(props) {
 
     return topTracks?.data?.items
   }
-
-  useEffect(() => {
-    playerIdRef.current = playerId
-  }, [playerId])
-
-
 
   useEffect(() => {
 
@@ -59,6 +51,7 @@ function Table(props) {
             localWs.send(JSON.stringify({type: "ping"}))
           }
         }, 10000))
+        setGameLoading(false)
 
         // send top tracks
         localWs.send(JSON.stringify({
@@ -80,7 +73,6 @@ function Table(props) {
                 artists: data['song'].artists
               })
               setGameStarted(true)
-              setGameLoading(false)
             }
             break
 
@@ -100,6 +92,11 @@ function Table(props) {
         console.log("Disconnected")
         clearInterval(heartbeat)
         setHeartbeat(null)
+        const navigationOptions = {
+          replace: true,
+          state: JSON.stringify({ error: `Disconnected from table connection with server` })
+        }
+        navigate('/', navigationOptions)
       }
 
       setWs(localWs)
@@ -116,7 +113,6 @@ function Table(props) {
   }, [])
 
   const startRound = () => {
-    setGameLoading(true)
     ws.send(JSON.stringify({
       type: "start_round",
     }))
@@ -124,23 +120,28 @@ function Table(props) {
   
   return (
       <div className="App-body">
-        <div className='Table-code'>Table code: {tableCode} </div>
-        <div className='Players-list'>
-          <div className='Players-title'> Players:</div>
-          {players.map(id => id.playerName).join(',')}
-        </div>
-        {tableOwner && !gameStarted ? (gameLoading ? <div>Loading... <span className="Table-loader"></span></div> : <button onClick={startRound}>start game</button> ) : <div></div>}
-        {gameStarted ? 
-        <Guess 
-          key={song.id}
-          requestMethod={request} 
-          players={players}
-          player={chosenPlayer}
-          ws={ws}
-          startRound={startRound}
-          tableCode={existingTableCode}
-          song={song} />
-        : <div/> }
+        {gameLoading ? <div>Loading... <span className="Table-loader"></span></div>
+        :
+        <>
+          <div className='Table-code'>Table code: {tableCode} </div>
+          <div className='Players-list'>
+            <div className='Players-title'> Players:</div>
+            {players.map(id => id.playerName).join(',')}
+          </div>
+          {tableOwner && !gameStarted && <button onClick={startRound}>start game</button>}
+          {gameStarted ? 
+          <Guess 
+            key={song.id}
+            requestMethod={request} 
+            players={players}
+            player={chosenPlayer}
+            ws={ws}
+            startRound={startRound}
+            tableCode={existingTableCode}
+            song={song} />
+          : <div/> }
+        </>
+        }
       </div>
   )
 }

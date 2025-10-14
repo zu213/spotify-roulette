@@ -3,8 +3,7 @@ import {useEffect, useState, memo} from 'react'
 let iframeFound = false
 let songStarted = false
 
-const Guess = memo((props) => {
-    // const [searchKey, setSearchKey] = useState("")
+const Guess = (props) => {
     const track = props.song
     const players = props.players
     const player = props.player
@@ -17,26 +16,27 @@ const Guess = memo((props) => {
     const [showArtist, setShowArtist] = useState(false)
     const [showSong, setShowSong] = useState(false)
     const [chosenPlayer, setChosenPlayer] = useState(null)
-    //const chosenPlayer = null
 
     useEffect(() => {
       const element = document.getElementById('spotify')
+      console.log('played:', element, element.contentWindow, !iframeFound)
       if (element && element.contentWindow && !iframeFound) {
-          window.addEventListener('message', (m) => {
-            if(m.data.type === 'playback_update' && !songStarted){
-              clearInterval(intervalId)
-              setGameInPlay(true)
-              startClock()
-              songStarted = true
-            }
-          }, [timeLeft])
-          const intervalId = setInterval(() => {
-            playPlayer('spotify')
-          }, 500)
+        window.addEventListener('message', m => {
+          if(m.data.type === 'playback_update' && !songStarted){
+            clearInterval(intervalId)
+            setGameInPlay(true)
+            startClock()
+            songStarted = true
+          }
+        }, [timeLeft])
+        const intervalId = setInterval(() => {
+          playPlayer('spotify')
+        }, 500)
+        console.log(intervalId)
 
-          iframeFound = true
+        iframeFound = true
       }
-    }, [gameInPlay])
+    }, [track])
 
     const playPlayer = (id) => {
       const iframe =document.getElementById(id)
@@ -51,59 +51,60 @@ const Guess = memo((props) => {
       const view='list'
       const theme='light'
       return (
-          localTrack ?
-          <div key={localTrack.id}>
-            <iframe
-            id="spotify"
-            title="Spotify"
-            className="Player"
-            src={`https://embed.spotify.com/?uri=${uri}&view=${view}&theme=${theme}`}
-            width={size.width}
-            height={size.height}
-            allowtransparency="true"
-            />
-            <div>
-              {localTrack.album.images.length ? <div className='Album-cover'><img className={!showAlbum ? 'Album-cover-hidden' : ''} onClick={() => playPlayer('spotify')} src={localTrack.album.images[0].url} alt=""/></div> : <div className='Album-cover'>No Image</div>}
-              {Array.from(localTrack.artists, (i) => (<div>Artist: <span className={!showArtist ? 'hidden' : ''}>{i.name},</span></div>))}
-              <br />
-              <div>Track: <span className={!showSong ? 'hidden' : ''}>{localTrack.name}</span></div>
-            </div>
-          </div> 
-          :
-            <div></div>
+        localTrack &&
+        <div key={localTrack.id}>
+          <iframe
+          id="spotify"
+          title="Spotify"
+          className="Player"
+          src={`https://embed.spotify.com/?uri=${uri}&view=${view}&theme=${theme}`}
+          width={size.width}
+          height={size.height}
+          allowtransparency="true"
+          />
+          <div>
+            {localTrack.album.images.length ? 
+              <div className='Album-cover'>
+                <img className={!showAlbum ? 'Album-cover-hidden' : ''} src={localTrack.album.images[0].url} alt=""/>
+              </div>
+              :<div className='Album-cover'>No Image</div>}
+            {Array.from(localTrack.artists, (i) => (
+              <div>Artist: <span className={!showArtist ? 'hidden' : ''}>{i.name},</span>
+              </div>
+            ))}
+            <br />
+            <div>Track: <span className={!showSong ? 'hidden' : ''}>{localTrack.name}</span></div>
+          </div>
+        </div> 
       )
     }
 
-    const startClock =  () => {
+    const startClock = () => {
+      if (intervalId) clearInterval(intervalId);
       setTimeLeft(25)
-      if(intervalId) clearInterval(intervalId)
-      let localTime = 25
+
       const id = setInterval(() => {
+        setTimeLeft(prev => {
+          // Stop the timer when it reaches 0
+          if (prev <= 1) {
+            clearInterval(id)
+            setIntervalId(null)
+            playPlayer('spotify')
+            setGameInPlay(false)
+            return 0
+          }
 
-        if(localTime < 2){
-          clearInterval(id)
-          setIntervalId(null)
-          playPlayer('spotify')
-        }
+          if (prev <= 20) setShowAlbum(true)
+          if (prev <= 15) setShowArtist(true)
+          if (prev <= 10) setShowSong(true)
 
-        if(localTime < 20){
-          setShowAlbum(true)
-        }
-        if(localTime < 15){
-          setShowArtist(true)
-        }
-        if(localTime < 10){
-          setShowSong(true)
-        }
-        if(localTime < 2){
-          setGameInPlay(() => false)
-        }
-        localTime--
+          return prev - 1
+        });
+      }, 1000);
 
-        setTimeLeft(() => localTime)
-      }, 1000)
-      setIntervalId(id)
-    }
+      setIntervalId(id);
+    };
+
 
 
     const playerButtons = () => {
@@ -141,8 +142,10 @@ const Guess = memo((props) => {
 
     const startRound = () => {
       props.startRound()
-      setGameInPlay(true)
+      iframeFound = false
+      songStarted = false
     }
+
 
   return (
     <div className="Guess">
@@ -165,6 +168,6 @@ const Guess = memo((props) => {
 
     </div>
   )
-})
+}
 
 export default Guess

@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useLocation } from "react-router-dom"
-import { getTable, getTableInfo } from './bridge'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { getTable } from './bridge'
 
 function Search() {
   const navigate = useNavigate()
   const location = useLocation()
   const state = location.state
 
-  const [searchKey, setSearchKey] = useState("")
-  const [playerName, setPlayerName] = useState("")
+  const [searchKey, setSearchKey] = useState('')
+  const [playerName, setPlayerName] = useState('')
   const [error, setError] = useState(null)
 
   // Update error message
@@ -23,7 +23,7 @@ function Search() {
     e.preventDefault()
     // check if tabkle exists if so join
     getTable(searchKey).then(_ => {
-      navigate("/table", {state: {existingTableCode: searchKey, playerName: playerName }})
+      navigate('/table', {state: {existingTableCode: searchKey, playerName: playerName }})
     })
     .catch(e => {
       if(e.status == 404) {
@@ -36,24 +36,23 @@ function Search() {
     e.preventDefault()
 
     if(!playerName){
-      setError("No player name inputted")
+      setError('No player name inputted')
       return
     }
-    navigate("/table", {state: { playerName: playerName }})
+    navigate('/table', {state: { playerName: playerName }})
   }
 
   return (
-    <div className="App-body">
-
+    <div className='App-body'>
         <div className='Search-form-container'>
           <div className='Search-form'>
             <div>
               <label>Table code: </label>
-              <input id="tableCodeInput" type="text" onChange={e => setSearchKey(e.target.value)}/>
+              <input type='text' onChange={e => setSearchKey(e.target.value)}/>
             </div>
             <div>
               <label>Player name: </label>
-              <input id="playerNameInput" type="text" onChange={e => setPlayerName(e.target.value)}/>
+              <input type='text' onChange={e => setPlayerName(e.target.value)}/>
             </div>
           </div>
         </div>
@@ -62,8 +61,7 @@ function Search() {
           <button onClick={createTable}>create table</button>
         </div>
 
-
-      {error && <div>{error} </div>}
+      {error && <div>{error}</div>}
 
     </div>
   )
