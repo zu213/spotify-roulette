@@ -14,7 +14,7 @@ function Table(props) {
   const [tableCode, setTableCode] = useState(null)
   const [gameStarted, setGameStarted] = useState(false)
   const [song, setSong] = useState(null)
-  const [gameLoading, setGameLoading] = useState(true)
+  const [tableLoading, setTableLoading] = useState(true)
   const [chosenPlayer, setChosenPlayer] = useState(null)
   const [heartbeat, setHeartbeat] = useState(null)
   const [ws, setWs] = useState(null)
@@ -34,15 +34,12 @@ function Table(props) {
   }
 
   useEffect(() => {
-
-
     getUsersTopSongs().then(topTracks => {
 
       const playerName= state.playerName
 
       const websocket = 'ws://localhost:5000?playername=' + playerName + (existingTableCode ? `&tableid=${existingTableCode}` : '')
       let localWs = new WebSocket(websocket)
-      console.log(websocket)
 
       localWs.onopen = () => {
         console.log("Connected to server")
@@ -51,7 +48,7 @@ function Table(props) {
             localWs.send(JSON.stringify({type: "ping"}))
           }
         }, 10000))
-        setGameLoading(false)
+        setTableLoading(false)
 
         // send top tracks
         localWs.send(JSON.stringify({
@@ -102,14 +99,14 @@ function Table(props) {
       setWs(localWs)
     })
 
-      return () => {
-        if (ws) {
-          ws.close()
-          setWs(null)
-        }
-        clearInterval(heartbeat)
-        setHeartbeat(null)
+    return () => {
+      if (ws) {
+        ws.close()
+        setWs(null)
       }
+      clearInterval(heartbeat)
+      setHeartbeat(null)
+    }
   }, [])
 
   const startRound = () => {
@@ -120,7 +117,7 @@ function Table(props) {
   
   return (
       <div className="App-body">
-        {gameLoading ? <div>Loading... <span className="Table-loader"></span></div>
+        {tableLoading ? <div>Loading... <span className="Table-loader"></span></div>
         :
         <>
           <div className='Table-code'>Table code: {tableCode} </div>

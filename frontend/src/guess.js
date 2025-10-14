@@ -1,52 +1,55 @@
-import {useEffect, useState, memo} from 'react'
-
-let iframeFound = false
-let songStarted = false
+import {useEffect, useState, useRef} from 'react'
 
 const Guess = (props) => {
     const track = props.song
     const players = props.players
     const player = props.player
     const ws = props.ws
-    const [gameInPlay, setGameInPlay] = useState(true)
+    // Game state: loading, in-play, done
+    const [gameState, setGameState] = useState('loading')
     const [timeLeft, setTimeLeft] = useState(25)
     const [guessTime, setGuessTime] = useState(null)
-    const [intervalId, setIntervalId] = useState(null)
     const [showAlbum, setShowAlbum] = useState(false)
     const [showArtist, setShowArtist] = useState(false)
     const [showSong, setShowSong] = useState(false)
+    // interval to kick clocl
+    const [intervalId, setIntervalId] = useState(null)
+
     const [chosenPlayer, setChosenPlayer] = useState(null)
+    const songStarted = useRef(false)
 
     useEffect(() => {
-      const element = document.getElementById('spotify')
-      console.log('played:', element, element.contentWindow, !iframeFound)
-      if (element && element.contentWindow && !iframeFound) {
-        window.addEventListener('message', m => {
-          if(m.data.type === 'playback_update' && !songStarted){
-            clearInterval(intervalId)
-            setGameInPlay(true)
-            startClock()
-            songStarted = true
-          }
-        }, [timeLeft])
-        const intervalId = setInterval(() => {
-          playPlayer('spotify')
-        }, 500)
-        console.log(intervalId)
+      // forced get element by id
+      const iframe = document.getElementById('spotify')
+      if (!iframe || !iframe.contentWindow) return
 
-        iframeFound = true
+      const handleMessage = (m) => {
+        if(m.data?.type == 'ready') {
+          playPlayer('spotify')
+        } else if (m.data?.type === 'playback_update' && !songStarted.current) {
+          songStarted.current = true
+          setGameState('in-play')
+          startClock()
+        }
+      }
+
+      window.addEventListener('message', handleMessage)
+
+      // Cleanup when track changes or component unmounts
+      return () => {
+        window.removeEventListener('message', handleMessage)
+        songStarted.current = false
       }
     }, [track])
 
     const playPlayer = (id) => {
       const iframe =document.getElementById(id)
       if(!iframe) return
-      console.log('Interact: ', id, iframe)
       iframe.contentWindow.postMessage({command: 'toggle'}, '*')
     }
 
     const renderSong = (localTrack) => {
-      const size =  {width: '100%', height: '100%'}
+      const size =  {width: '1%', height: '1%'}
       const uri=`spotify:track:${localTrack ? localTrack.id : ''}`
       const view='list'
       const theme='light'
@@ -80,7 +83,7 @@ const Guess = (props) => {
     }
 
     const startClock = () => {
-      if (intervalId) clearInterval(intervalId);
+      if (intervalId) clearInterval(intervalId)
       setTimeLeft(25)
 
       const id = setInterval(() => {
@@ -90,7 +93,7 @@ const Guess = (props) => {
             clearInterval(id)
             setIntervalId(null)
             playPlayer('spotify')
-            setGameInPlay(false)
+            setGameState('done')
             return 0
           }
 
@@ -99,13 +102,11 @@ const Guess = (props) => {
           if (prev <= 10) setShowSong(true)
 
           return prev - 1
-        });
-      }, 1000);
+        })
+      }, 1000)
 
-      setIntervalId(id);
-    };
-
-
+      setIntervalId(id)
+    }
 
     const playerButtons = () => {
       return (
@@ -119,17 +120,6 @@ const Guess = (props) => {
       )
     }
 
-    const playerAnswer = () => {
-      return (
-        <span>Your answer: {chosenPlayer.playerName}</span>
-      )
-    }
-
-    const answer = () => {
-      return (
-        <span>{player?.playerName}</span>
-      )
-    }
 
     const playerGuess = (player) => {
       setGuessTime(timeLeft)
@@ -142,30 +132,39 @@ const Guess = (props) => {
 
     const startRound = () => {
       props.startRound()
-      iframeFound = false
-      songStarted = false
+      songStarted.current = false
+      setGameState('loading')
     }
 
 
   return (
     <div className="Guess">
-      <div className='Guess-timer'> Time left: {timeLeft} </div>
-      {renderSong(track)}
-      <div>
-        {gameInPlay && !chosenPlayer ? playerButtons() : chosenPlayer ? playerAnswer() : ''}
+      {gameState === 'loading' && <div>Loading... <span className="Table-loader"></span></div>}
+      <div className={gameState === 'loading' ? 'none' : ''}>
+        <div className='Guess-timer'> Time left: {timeLeft} </div>
+        {renderSong(track)}
+        <div>
+          {gameState === 'in-play' && !chosenPlayer ?
+            playerButtons() 
+            : chosenPlayer ?
+            <span>Your answer: {chosenPlayer.playerName}</span>
+            : <span>Did not guess in time!</span>
+          }
+        </div>
+        <div>
+          {guessTime && `Time of your guess: ${guessTime}` }
+        </div>
+        <div>
+          Answer: {gameState == 'done' && <span>{player?.playerName}</span> }
+        </div>
+        <div>
+          {gameState == 'done' && 
+            <button onClick={startRound} >
+              Next round
+            </button>
+          }
+        </div>
       </div>
-      <div>
-         {guessTime ? `Time of your guess: ${guessTime}` : '' }
-      </div>
-      <div>
-        Answer: {!gameInPlay ? answer() : '' }
-      </div>
-      {!gameInPlay && 
-        <button onClick={startRound} >
-          Next round
-        </button>
-      }
-
     </div>
   )
 }
