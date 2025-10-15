@@ -1,13 +1,20 @@
+import '../styles/Leaderboard.css'
+
 function Leaderboard(props) {
   const scores = props.scores
   console.log(scores)
 
   return (
-    <div className='tst' >
-      {scores?.map(score => 
-        <div key={score.playerName}>
-          {score?.playerName} | {score?.score}
-        </div>
+    <div className='leaderboard' >
+      <div className='leaderboard-title'>
+        <span>Player</span> <span>Score</span>
+      </div>
+      {scores?.map((score) =>
+        <>
+          <div className='leaderboard-entry' key={score.playerName}>
+            <span>{score?.playerName}</span> <span>{score?.score}</span>
+          </div>
+        </>
       )}
     </div>
   )

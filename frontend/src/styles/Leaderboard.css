@@ -1,0 +1,25 @@
+
+.leaderboard {
+  max-width: 200px;
+  display: grid;
+  overflow: hidden;
+}
+
+.leaderboard-entry, .leaderboard-title {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-bottom: 1px solid rgb(84, 84, 84)
+}
+
+.leaderboard-entry:last-child {
+  border-bottom: none;
+}
+
+.leaderboard-entry span, .leaderboard-title span {
+  min-width: 50px;
+  padding: 10px;
+}
+
+.leaderboard-entry span:first-child, .leaderboard-title span:first-child {
+  border-right: 1px solid rgb(84, 84, 84);
+}

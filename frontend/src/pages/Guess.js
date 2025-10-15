@@ -1,3 +1,5 @@
+import '../styles/Guess.css'
+
 import {useEffect, useState, useRef} from 'react'
 
 const Guess = (props) => {
@@ -12,7 +14,7 @@ const Guess = (props) => {
     const [showAlbum, setShowAlbum] = useState(false)
     const [showArtist, setShowArtist] = useState(false)
     const [showSong, setShowSong] = useState(false)
-    // interval to kick clocl
+    // interval to kick clock
     const [intervalId, setIntervalId] = useState(null)
 
     const [chosenPlayer, setChosenPlayer] = useState(null)
@@ -72,10 +74,9 @@ const Guess = (props) => {
               </div>
               :<div className='Album-cover'>No Image</div>}
             {Array.from(localTrack.artists, (i) => (
-              <div>Artist: <span className={!showArtist ? 'hidden' : ''}>{i.name},</span>
+              <div>Artist: <span className={!showArtist ? 'hidden' : ''}>{i.name}{i < localTrack.artists.length - 1 && `,`}</span>
               </div>
             ))}
-            <br />
             <div>Track: <span className={!showSong ? 'hidden' : ''}>{localTrack.name}</span></div>
           </div>
         </div> 
@@ -90,10 +91,13 @@ const Guess = (props) => {
         setTimeLeft(prev => {
           // Stop the timer when it reaches 0
           if (prev <= 1) {
+            clearInterval(intervalId)
             clearInterval(id)
             setIntervalId(null)
-            playPlayer('spotify')
             setGameState('done')
+            if(gameState == 'in-play'){
+              playPlayer('spotify')
+            }
             return 0
           }
 
@@ -139,7 +143,12 @@ const Guess = (props) => {
 
   return (
     <div className="Guess">
-      {gameState === 'loading' && <div>Loading... <span className="loader"></span></div>}
+      {gameState === 'loading' && 
+        <div className='loader-container'>
+          <h3>Loading</h3>
+          <div className="loader"></div>
+        </div>
+      }
       <div className={gameState === 'loading' ? 'none' : ''}>
         <div className='Guess-timer'> Time left: {timeLeft} </div>
         {renderSong(track)}

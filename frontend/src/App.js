@@ -77,12 +77,16 @@ function App() {
     <div className='App'>
     <div className="App-header">
       <h1>Spotify Roulette</h1>
-        {token ?
-          <button onClick={logout}>Logout</button>
-          : <a href={`${AUTH_ENDPOINT}?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=${RESPONSE_TYPE}&scope=user-top-read`}>Login to Spotify</a>
+        {token &&
+          <button className='logout-button' onClick={logout}>Logout</button>
         }
     </div>
-    {token &&
+    {!token ?
+      <div>
+        <h4>You must login to Spotify to use this app</h4>
+        <a className='sign-in-link' href={`${AUTH_ENDPOINT}?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=${RESPONSE_TYPE}&scope=user-top-read`}>Login to Spotify</a>
+      </div>
+      :
       <Routes>
         <Route exact path='/' element={<Join/>} />
         <Route exact path='/table' element={<Game token={token}/>} />

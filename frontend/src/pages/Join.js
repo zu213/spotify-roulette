@@ -49,25 +49,25 @@ function Join() {
       <div className='join-form-container'>
         <div className='join-form'>
           <div>
-            <label>Table code: </label>
+            <label>Game Code: </label>
             <input type='text' onChange={e => setSearchKey(e.target.value)}/>
           </div>
           <div>
-            <label>Player name: </label>
+            <label>Player Name: </label>
             <input type='text' onChange={e => setPlayerName(e.target.value)}/>
           </div>
         </div>
       </div>
       <div className='join-buttons'>
         <div className='join-button'>
-          <button onClick={findTable}>join table</button>
+          <button onClick={findTable}>Join Game</button>
         </div>
         <div className='join-button'>
-          <button onClick={createTable}>create table</button>
+          <button onClick={createTable}>Create Game</button>
         </div>
       </div>
 
-      {error && <div>{error}</div>}
+      {error && <textarea className='join-error' readOnly unselectable='on'>{error}</textarea>}
     </div>
   )
 }

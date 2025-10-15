@@ -1,0 +1,47 @@
+/* Guess */
+
+.Guess div {
+  padding: 2px;
+}
+
+.Guess-timer {
+  font-weight: bold;
+  padding: 1px;
+  outline-style: dotted;
+  outline-width: 2px;
+  outline-color: #2ea44f;
+  width: 10vw;
+  position: relative;
+  left: 43vw;
+  margin: 4px;
+}
+
+.Album-cover {
+  width: 20vw;
+  height: 20vw;
+  display: inline-block;
+  outline-style: dashed;
+  outline-width: 2px;
+  outline-color: #2ea44f;
+}
+
+.Album-cover img {
+  width: 100%;
+}
+
+.Album-cover-hidden {
+  opacity: 0;
+}
+
+.Player {
+  opacity: 0;
+  height: 0px;
+  width: 1px;
+  position: fixed;
+  z-index: -10;
+  position: absolute;
+}
+
+.none {
+  display: none;
+}

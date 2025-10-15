@@ -53,3 +53,8 @@
   width: 300px;
   user-select: none;
 }
+
+.join-error {
+  min-width: 600px;
+  height: 100px;
+}

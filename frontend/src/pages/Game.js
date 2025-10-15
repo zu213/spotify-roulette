@@ -1,8 +1,11 @@
+import '../styles/Game.css'
+
 import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { requestFromSpotify } from '../helper/bridge'
+
 import Guess from './Guess'
 import Leaderboard from './Leaderboard'
-import { requestFromSpotify } from '../helper/bridge'
 
 function Game(props) {
   const location = useLocation()
@@ -118,15 +121,18 @@ function Game(props) {
   
   return (
       <div className="game">
-        {tableLoading ? <div>Loading... <span className="loader"></span></div>
+        {tableLoading ? 
+        <div className='loader-container loader-container--join'>
+          <h3>Loading</h3>
+          <div className="loader"></div>
+        </div>
         :
         <>
           <div className='Table-code'>Table code: {tableCode} </div>
-          <div className='Players-list'>
-            <div className='Players-title'> Players:</div>
-            {players.map(id => id.playerName).join(',')}
+          <div className='leaderboard-container'>
+            <Leaderboard scores={scores} />
           </div>
-          {tableOwner && !gameStarted && <button onClick={startRound}>start game</button>}
+          {tableOwner && !gameStarted && <button className='start-game-button' onClick={startRound}>Start Game</button>}
           {gameStarted && 
           <Guess 
             key={song.id}
@@ -138,7 +144,6 @@ function Game(props) {
             tableCode={existingTableCode}
             song={song} />
           }
-          <Leaderboard scores={scores} />
         </>
         }
       </div>
