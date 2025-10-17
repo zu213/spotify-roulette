@@ -74,9 +74,13 @@ const Guess = (props) => {
               </div>
             :<div className='Album-cover'>No Image</div>}
             {Array.from(localTrack.artists, (i) => (
-              <div key={i} >Artist: <span className={!showArtist ? 'hidden' : ''}>{i.name}{i < localTrack.artists.length - 1 && `,`}</span></div>
+              <div key={i} >
+                Artist: {showArtist && <span>{i.name}{i < localTrack.artists.length - 1 && `,`}</span>}
+              </div>
             ))}
-            <div>Track: <span className={!showSong ? 'hidden' : ''}>{localTrack.name}</span></div>
+            <div>
+              Track: {showSong && <span className={!showSong ? 'hidden' : ''}>{localTrack.name}</span>}
+            </div>
           </div>
         </div> 
       )
@@ -139,6 +143,9 @@ const Guess = (props) => {
 
     const startRound = () => {
       props.startRound()
+      setShowAlbum(false)
+      setShowArtist(false)
+      setShowSong(false)
       songStarted.current = false
       setGameState('loading')
     }
