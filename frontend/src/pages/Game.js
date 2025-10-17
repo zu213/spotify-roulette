@@ -72,6 +72,7 @@ function Game(props) {
                 artists: data['song'].artists
               })
               setGameStarted(true)
+              setChosenPlayer(null)
             }
             break
 

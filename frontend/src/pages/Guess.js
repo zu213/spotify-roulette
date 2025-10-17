@@ -72,10 +72,9 @@ const Guess = (props) => {
               <div className='Album-cover'>
                 <img className={!showAlbum ? 'Album-cover-hidden' : ''} src={localTrack.album.images[0].url} alt=""/>
               </div>
-              :<div className='Album-cover'>No Image</div>}
+            :<div className='Album-cover'>No Image</div>}
             {Array.from(localTrack.artists, (i) => (
-              <div>Artist: <span className={!showArtist ? 'hidden' : ''}>{i.name}{i < localTrack.artists.length - 1 && `,`}</span>
-              </div>
+              <div key={i} >Artist: <span className={!showArtist ? 'hidden' : ''}>{i.name}{i < localTrack.artists.length - 1 && `,`}</span></div>
             ))}
             <div>Track: <span className={!showSong ? 'hidden' : ''}>{localTrack.name}</span></div>
           </div>
@@ -94,10 +93,14 @@ const Guess = (props) => {
             clearInterval(intervalId)
             clearInterval(id)
             setIntervalId(null)
-            setGameState('done')
             if(gameState == 'in-play'){
               playPlayer('spotify')
             }
+            ws.send(JSON.stringify({
+              type: "guess_made",
+              playerId: '',
+            }))
+            setGameState('done')
             return 0
           }
 

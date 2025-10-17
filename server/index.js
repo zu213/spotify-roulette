@@ -131,6 +131,10 @@ wss.on('connection', (ws, req) => {
       const data = JSON.parse(msg);
       console.log(data.type)
 
+      // always needs fresh index in case things change
+      tableIndex = tables.findIndex(t => t.code == tableCode);
+      playerIndex = tables[tableIndex].playerIds.findIndex(p => p.id == playerId)
+
       switch (data.type) {
         case 'submit_tracks':
           // Add the player relating to thsi websocker
@@ -177,8 +181,8 @@ wss.on('connection', (ws, req) => {
           }
 
           if(!gameInPlay){
+            // broadcast on the last player to guess
             const { tracks, ws, ...strippedPlayer} = answerPlayer
-
             const scores = tables[tableIndex].playerIds.map(player => ({playerName: player['playerName'], score: player['score']}))
             broadcastToTable(tableIndex, {type:'show_leaderboard', answer: strippedPlayer, scores})
           }
