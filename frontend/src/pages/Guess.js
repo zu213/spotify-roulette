@@ -73,12 +73,12 @@ const Guess = (props) => {
             </div>
           :<div className='Album-cover'>No Image</div>}
           {Array.from(localTrack.artists, (i) => (
-            <div key={i} >
-              Artist: {showArtist && <span>{i.name}{i < localTrack.artists.length - 1 && `,`}</span>}
+            <div className='artist' key={i} >
+              Artist: {showArtist ? <span>{i.name}{i < localTrack.artists.length - 1 && `,`}</span> : '???'}
             </div>
           ))}
-          <div>
-            Track: {showSong && <span>{localTrack.name}</span>}
+          <div className='track'>
+            Track: {showSong ? <span>{localTrack.name}</span> : '???'}
           </div>
         </div>
       </div> 
@@ -122,7 +122,6 @@ const Guess = (props) => {
   const playerButtons = () => {
     return (
       <div>
-        Players:&nbsp;
         {Array.from(players, (player) => (
           <button onClick={() => {playerGuess(player)}}>
             {player.playerName}
@@ -167,15 +166,15 @@ const Guess = (props) => {
           {gameState === 'in-play' && !chosenPlayer ?
             playerButtons() 
             : chosenPlayer ?
-            <span>Your answer: {chosenPlayer.playerName}</span>
-            : <span>Did not guess in time!</span>
+            <span>Your answer: <span className='your-answer'>{chosenPlayer.playerName}</span></span>
+            : <span className='no-guess'>Did not guess in time!</span>
           }
         </div>
         <div>
           {guessTime && `Time of your guess: ${guessTime}` }
         </div>
-        <div>
-          Answer: {gameState == 'done' && <span>{player?.playerName}</span> }
+        <div className='answer'>
+          Answer: {gameState == 'done' ? <span>{player?.playerName}</span> : '???' }
         </div>
         <div>
           {gameState == 'done' && 

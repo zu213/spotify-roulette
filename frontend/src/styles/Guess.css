@@ -17,8 +17,8 @@
 }
 
 .Album-cover {
-  width: 20vw;
-  height: 20vw;
+  width: 15vw;
+  height: 15vw;
   display: inline-block;
   outline-style: dashed;
   outline-width: 2px;
@@ -44,4 +44,24 @@
 
 .none {
   display: none;
+}
+
+.artist span, .track span{
+  text-decoration: underline;
+}
+
+.answer span, .your-answer {
+  color: #2ea44f;
+}
+
+.no-guess {
+  color: rgb(205, 36, 36)
+}
+
+.answer span {
+  font-weight: bold;
+}
+
+.answer {
+  margin-bottom: 5px;
 }

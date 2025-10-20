@@ -1,14 +1,18 @@
 
 .leaderboard {
-  max-width: 200px;
+  max-width: 300px;
   display: grid;
   overflow: hidden;
+}
+
+.leaderboard-title {
+  font-weight: bold;
 }
 
 .leaderboard-entry, .leaderboard-title {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  border-bottom: 1px solid rgb(84, 84, 84)
+  border-bottom: 2px solid rgb(84, 84, 84)
 }
 
 .leaderboard-entry:last-child {
@@ -16,10 +20,10 @@
 }
 
 .leaderboard-entry span, .leaderboard-title span {
-  min-width: 50px;
+  min-width: 100px;
   padding: 10px;
 }
 
 .leaderboard-entry span:first-child, .leaderboard-title span:first-child {
-  border-right: 1px solid rgb(84, 84, 84);
+  border-right: 2px solid rgb(84, 84, 84);
 }

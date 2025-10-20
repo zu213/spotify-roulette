@@ -128,13 +128,14 @@ wss.on('connection', (ws, req) => {
       // always needs fresh index in case things change
       tableIndex = tables.findIndex(t => t.code == tableCode)
       playerIndex = tables[tableIndex].playerIds.findIndex(p => p.id == playerId)
+      lastActivityTime = Date.now()
 
       switch (data.type) {
         case 'submit_tracks':
           // Add the player relating to this websocket
           playerId = uuidv4()
           console.log(`New player submitted: ${playerId}`)
-          tables[tableIndex].playerIds.push({tracks: data.tracks, id: playerId, lastActivityTime: Date.now(), playerName: playerName, ws, score: 0, playingGame: false})
+          tables[tableIndex].playerIds.push({tracks: data.tracks, id: playerId, lastActivityTime: lastActivityTime, playerName: playerName, ws, score: 0, playingGame: false})
           playerIndex = tables[tableIndex].playerIds.length - 1
           const scores = tables[tableIndex].playerIds.map(player => ({playerName: player['playerName'], score: player['score']}))
           broadcastToTable(tableIndex, {type: 'table_info', tableCode, players: tables[tableIndex].playerIds, scores})
@@ -144,8 +145,8 @@ wss.on('connection', (ws, req) => {
           if(playerId == null || tableCode == null || playerIndex == null || tableIndex == null) return
           if(tableIndex < 0 || !tables[tableIndex]) return ws.send(JSON.stringify({type: 'no_table', message: 'invalid table'}))
           
-            console.log(`Ping from player: ${playerId}`)
-          tables[tableIndex].playerIds[playerIndex]['lastActivityTime'] = Date.now()
+          console.log(`Ping from player: ${playerId}`)
+          tables[tableIndex].playerIds[playerIndex]['lastActivityTime'] = lastActivityTime
           ws.send(JSON.stringify({type: 'pong', message: `Table ${tableCode} alive message received for player ${playerId}`}))
           break
 
