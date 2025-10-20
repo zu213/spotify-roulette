@@ -35,73 +35,76 @@ function Game(props) {
     return topTracks?.data?.items
   }
 
+  const processWSMessage = (data) => {
+    if(!data['type']) return
+
+    switch (data['type']) {
+      case 'start_round':
+        if(data['song'] && !gameStarted){
+          setSong({id: data['song'].id, 
+            name: data['song'].name,
+            album: data['song'].album,
+            artists: data['song'].artists
+          })
+          setGameStarted(true)
+          setChosenPlayer(null)
+        }
+        break
+
+      case 'table_info':
+        setPlayers(data['players'])
+        setTableCode(data['tableCode'])
+        setScores(data['scores'])
+        break
+
+      case 'show_leaderboard':
+        setChosenPlayer(data['answer'])
+        setScores(data['scores'])
+
+      default:
+        break
+    }
+  }
+
   useEffect(() => {
     getUsersTopSongs().then(topTracks => {
-
       const playerName= state.playerName
+      const websocketURL = 'ws://localhost:5000?playername=' + playerName + (existingTableCode ? `&tableid=${existingTableCode}` : '')
+      const websocket = new WebSocket(websocketURL)
 
-      const websocket = 'ws://localhost:5000?playername=' + playerName + (existingTableCode ? `&tableid=${existingTableCode}` : '')
-      let localWs = new WebSocket(websocket)
-
-      localWs.onopen = () => {
-        console.log("Connected to server")
+      websocket.onopen = () => {
+        // console.log("Connected to server")
+        // Setup heartbeat
         setHeartbeat(setInterval(() => {
-          if (localWs.readyState === WebSocket.OPEN) {
-            localWs.send(JSON.stringify({type: "ping"}))
+          if (websocket.readyState === WebSocket.OPEN) {
+            websocket.send(JSON.stringify({type: "ping"}))
           }
-        }, 10000))
+        }, 15000))
         setTableLoading(false)
 
-        // send top tracks
-        localWs.send(JSON.stringify({
+        // Send top tracks
+        websocket.send(JSON.stringify({
           type: "submit_tracks",
           playerName: playerName,
           tracks: topTracks
         }))
       }
 
-      localWs.onmessage = event => {
-        console.log("Server:", event.data)
+      websocket.onmessage = event => {
+        // console.log("Server:", event.data)
         const data = JSON.parse(event.data)
-        switch (data['type']) {
-          case 'start_round':
-            if(data['song'] && !gameStarted){
-              setSong({id: data['song'].id, 
-                name: data['song'].name,
-                album: data['song'].album,
-                artists: data['song'].artists
-              })
-              setGameStarted(true)
-              setChosenPlayer(null)
-            }
-            break
-
-          case 'table_info':
-            setPlayers(data['players'])
-            setTableCode(data['tableCode'])
-            setScores(data['scores'])
-            break
-
-          case 'show_leaderboard':
-            setChosenPlayer(data['answer'])
-            setScores(data['scores'])
-
-          default:
-            break
-        }
+        processWSMessage(data)
       }
-      localWs.onclose = () => {
+
+      websocket.onclose = () => {
         console.log("Disconnected")
         clearInterval(heartbeat)
         setHeartbeat(null)
-        const navigationOptions = {
-          replace: true,
-          state: JSON.stringify({ error: `Disconnected from table connection with server` })
-        }
+        const navigationOptions = { replace: true, state: JSON.stringify({ error: 'Disconnected from table connection with server'}) }
         navigate('/', navigationOptions)
       }
 
-      setWs(localWs)
+      setWs(websocket)
     })
 
     return () => {
@@ -121,33 +124,33 @@ function Game(props) {
   }
   
   return (
-      <div className="game">
-        {tableLoading ? 
-        <div className='loader-container loader-container--join'>
-          <h3>Loading</h3>
-          <div className="loader"></div>
-        </div>
-        :
-        <>
-          <div className='Table-code'>Table code: {tableCode} </div>
-          <div className='leaderboard-container'>
-            <Leaderboard scores={scores} />
-          </div>
-          {tableOwner && !gameStarted && <button className='start-game-button' onClick={startRound}>Start Game</button>}
-          {gameStarted && 
-          <Guess 
-            key={song.id}
-            requestMethod={request} 
-            players={players}
-            player={chosenPlayer}
-            ws={ws}
-            startRound={startRound}
-            tableCode={existingTableCode}
-            song={song} />
-          }
-        </>
-        }
+    <div className="game">
+      {tableLoading ? 
+      <div className='loader-container loader-container--join'>
+        <h3>Loading</h3>
+        <div className="loader"></div>
       </div>
+      :
+      <>
+        <div className='Table-code'>Table code: {tableCode} </div>
+        <div className='leaderboard-container'>
+          <Leaderboard scores={scores} />
+        </div>
+        {tableOwner && !gameStarted && <button className='start-game-button' onClick={startRound}>Start Game</button>}
+        {gameStarted && 
+        <Guess 
+          key={song.id}
+          requestMethod={request} 
+          players={players}
+          player={chosenPlayer}
+          ws={ws}
+          startRound={startRound}
+          tableCode={existingTableCode}
+          song={song} />
+        }
+      </>
+      }
+    </div>
   )
 }
 

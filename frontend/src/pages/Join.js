@@ -23,6 +23,11 @@ function Join() {
 
   const findTable = async (e) => {
     e.preventDefault()
+
+    // Check key is valid
+    const isValidTable = /^\d{1,3}$/.test(searchKey)
+    if (!isValidTable) return setError('Enter a valid table number if joining')
+
     // check if tabkle exists if so join
     getTable(searchKey).then(_ => {
       navigate('/table', {state: {existingTableCode: searchKey, playerName: playerName }})
@@ -67,7 +72,7 @@ function Join() {
         </div>
       </div>
 
-      {error && <textarea className='join-error' readOnly unselectable='on'>{error}</textarea>}
+      {error && <textarea className='join-error' readOnly unselectable='on' value={error}></textarea>}
     </div>
   )
 }
