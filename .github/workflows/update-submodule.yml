@@ -8,7 +8,7 @@ jobs:
   update-submodule:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           repository: zu213/zupstn-website
           token: ${{ secrets.SUBMODULE_PAT }}
