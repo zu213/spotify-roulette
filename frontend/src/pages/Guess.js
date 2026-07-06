@@ -52,7 +52,6 @@ const Guess = (props) => {
 
   const renderSong = (localTrack) => {
     const size =  {width: '1%', height: '1%'}
-    const uri=`spotify:track:${localTrack ? localTrack.id : ''}`
 
     return (
       localTrack &&
@@ -61,9 +60,10 @@ const Guess = (props) => {
         id="spotify"
         title="Spotify"
         className="Player"
-        src={`https://embed.spotify.com/?uri=${uri}&view=list&theme=light`}
+        src={`https://open.spotify.com/embed/track/${localTrack.id}?theme=light`}
         width={size.width}
         height={size.height}
+        allow="autoplay; encrypted-media"
         allowtransparency="true"
         />
         <div>

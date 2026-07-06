@@ -67,12 +67,19 @@ function Game(props) {
   }
 
   useEffect(() => {
+    let retryTimeout = null
+
     getUsersTopSongs().then(topTracks => {
       const playerName= state.playerName
       const websocketURL = `${SERVER_WS_URL}?playername=` + playerName + (existingTableCode ? `&tableid=${existingTableCode}` : '')
+
+      // The free server can take a minute to wake up, so keep retrying until it does
+      const connect = (attemptsLeft) => {
       const websocket = new WebSocket(websocketURL)
+      let opened = false
 
       websocket.onopen = () => {
+        opened = true
         // console.log("Connected to server")
         // Setup heartbeat
         setHeartbeat(setInterval(() => {
@@ -100,11 +107,21 @@ function Game(props) {
         console.log("Disconnected")
         clearInterval(heartbeat)
         setHeartbeat(null)
+
+        // Never connected, the server is probably still waking up
+        if (!opened && attemptsLeft > 0) {
+          retryTimeout = setTimeout(() => connect(attemptsLeft - 1), 5000)
+          return
+        }
+
         const navigationOptions = { replace: true, state: JSON.stringify({ error: 'Disconnected from table connection with server'}) }
         navigate('/', navigationOptions)
       }
 
       setWs(websocket)
+      }
+
+      connect(20)
     })
 
     return () => {
@@ -114,6 +131,7 @@ function Game(props) {
       }
       clearInterval(heartbeat)
       setHeartbeat(null)
+      clearTimeout(retryTimeout)
     }
   }, [])
 

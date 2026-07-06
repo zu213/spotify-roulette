@@ -65,6 +65,19 @@ export async function exchangeCodeForToken(clientId, redirectUri, code) {
 export const SERVER_URL = process.env.REACT_APP_SERVER_URL || 'http://localhost:5000'
 export const SERVER_WS_URL = SERVER_URL.replace(/^http/, 'ws')
 
-export async function getTable(tableCode) {
-  return axios.get(`${SERVER_URL}/table/${tableCode}`)
+export async function getTable(tableCode, retries = 20) {
+  try {
+    return await axios.get(`${SERVER_URL}/table/${tableCode}`, {timeout: 5000})
+  } catch (e) {
+    // A real answer from the server (eg 404) ends the wait, anything else means it is still waking up
+    const retryable = !e.response || [502, 503, 504].includes(e.response.status)
+    if (!retryable || retries <= 0) throw e
+    await new Promise(resolve => setTimeout(resolve, 3000))
+    return getTable(tableCode, retries - 1)
+  }
+}
+
+// The free demo server sleeps when idle, poke it so it wakes while the player logs in
+export function wakeServer() {
+  return axios.get(SERVER_URL).catch(() => {})
 }

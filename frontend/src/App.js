@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react'
 import './styles/App.css'
-import { requestFromSpotify, getSpotifyAuthUrl, exchangeCodeForToken } from './helper/bridge'
+import { requestFromSpotify, getSpotifyAuthUrl, exchangeCodeForToken, wakeServer } from './helper/bridge'
 import { Route, Routes, useNavigate} from 'react-router-dom'
 import Game from './pages/Game'
 import Join from './pages/Join'
@@ -35,6 +35,8 @@ function App() {
     e.preventDefault()
     window.location = await getSpotifyAuthUrl(CLIENT_ID, REDIRECT_URI)
   }
+
+  useEffect(() => { wakeServer() }, [])
 
   useEffect(() => {(async () => {
     const code = new URLSearchParams(window.location.search).get("code")
