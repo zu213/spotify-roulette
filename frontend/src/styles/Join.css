@@ -58,3 +58,8 @@
   min-width: 600px;
   height: 100px;
 }
+
+.join-connecting {
+  font-weight: bold;
+  color: var(--primary);
+}

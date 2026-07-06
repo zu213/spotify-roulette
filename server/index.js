@@ -6,8 +6,7 @@ const { v4: uuidv4 } = require('uuid')
 const { WebSocketServer } = require('ws')
 const http = require('http')
 
-const PORT = process.argv[2] || 5000
-const timeToLive = 30
+const PORT = process.env.PORT || process.argv[2] || 5000
 
 // Create an Express application
 const app = express()
@@ -16,21 +15,11 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 
 let lastActivityTime = Date.now()
-const inactivityTimeout = timeToLive * 60 * 1000
 const playerInactivityTimeout = 40 * 1000
 const tables = []
 
 const server = http.createServer(app)
 const wss = new WebSocketServer({ server })
-
-function checkInactivity() {
-  const currentTime = Date.now()
-  console.log(`Time since last message: ${(currentTime - lastActivityTime)/ 1000} seconds`)
-  if (currentTime - lastActivityTime >= inactivityTimeout) {
-    console.log(`No activity for ${timeToLive} minutes. Terminating server process...`)
-    process.exit()  // Terminate the child process
-  }
-}
 
 function checkPlayers() {
   const now = Date.now()
@@ -200,6 +189,4 @@ server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`)
 })
 
-// Start the heartbeat, dies after X mins
-setInterval(checkInactivity, timeToLive * 10000)
-setInterval(checkPlayers, timeToLive * 1000)
+setInterval(checkPlayers, 30 * 1000)

@@ -16,6 +16,9 @@ export const requestFromSpotify = async (token, endpoint, searchKey=null) => {
   return await axios.get(`https://api.spotify.com/v1/${endpoint}`, requestObject)
 }
 
+export const SERVER_URL = process.env.REACT_APP_SERVER_URL || 'http://localhost:5000'
+export const SERVER_WS_URL = SERVER_URL.replace(/^http/, 'ws')
+
 export async function getTable(tableCode) {
-  return axios.get(`http://localhost:5000/table/${tableCode}`)
+  return axios.get(`${SERVER_URL}/table/${tableCode}`)
 }

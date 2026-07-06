@@ -2,7 +2,7 @@ import '../styles/Game.css'
 
 import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { requestFromSpotify } from '../helper/bridge'
+import { requestFromSpotify, SERVER_WS_URL } from '../helper/bridge'
 
 import Guess from './Guess'
 import Leaderboard from './Leaderboard'
@@ -69,7 +69,7 @@ function Game(props) {
   useEffect(() => {
     getUsersTopSongs().then(topTracks => {
       const playerName= state.playerName
-      const websocketURL = 'ws://localhost:5000?playername=' + playerName + (existingTableCode ? `&tableid=${existingTableCode}` : '')
+      const websocketURL = `${SERVER_WS_URL}?playername=` + playerName + (existingTableCode ? `&tableid=${existingTableCode}` : '')
       const websocket = new WebSocket(websocketURL)
 
       websocket.onopen = () => {
@@ -129,6 +129,7 @@ function Game(props) {
       <div className='loader-container loader-container--join'>
         <h3>Loading</h3>
         <div className="loader"></div>
+        <p className='loader-note'>The demo server sleeps when idle — the first connection can take up to a minute while it wakes up.</p>
       </div>
       :
       <>

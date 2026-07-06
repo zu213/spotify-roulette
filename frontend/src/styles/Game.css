@@ -12,3 +12,8 @@
 .start-game-button {
   margin: 20px;
 }
+
+.loader-note {
+  max-width: 400px;
+  margin: 20px auto 0;
+}

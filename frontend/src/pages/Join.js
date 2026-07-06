@@ -12,6 +12,7 @@ function Join() {
   const [searchKey, setSearchKey] = useState('')
   const [playerName, setPlayerName] = useState('')
   const [error, setError] = useState(null)
+  const [connecting, setConnecting] = useState(false)
 
   // Update error message
   useEffect(()  => {
@@ -29,6 +30,8 @@ function Join() {
     if (!isValidTable) return setError('Enter a valid table number if joining')
 
     // check if tabkle exists if so join
+    setError(null)
+    setConnecting(true)
     getTable(searchKey).then(_ => {
       navigate('/table', {state: {existingTableCode: searchKey, playerName: playerName }})
     })
@@ -37,6 +40,7 @@ function Join() {
         setError(`Table "${searchKey}" not found`)
       }
     })
+    .finally(() => setConnecting(false))
   }
 
   const createTable = (e) => {
@@ -72,6 +76,7 @@ function Join() {
         </div>
       </div>
 
+      {connecting && <p className='join-connecting'>Contacting server — it sleeps when idle, so this can take up to a minute...</p>}
       {error && <textarea className='join-error' readOnly unselectable='on' value={error}></textarea>}
     </div>
   )
