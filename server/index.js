@@ -78,6 +78,8 @@ function chooseSong(tableId){
   }
 }
 
+app.get('/', (req, res) => res.send('Spotify Roulette server running'))
+
 app.get('/table/:id' , (req, res) => {
   const table = tables.find(e => e.code == req.params.id)
   if(table) {
