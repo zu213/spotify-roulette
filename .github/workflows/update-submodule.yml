@@ -1,0 +1,27 @@
+name: Update submodule in zupstn-website
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  update-submodule:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: zu213/zupstn-website
+          token: ${{ secrets.SUBMODULE_PAT }}
+          submodules: true
+
+      - name: Update submodule
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          cd public/spotify-roulette
+          git checkout main
+          git pull origin main
+          cd ../..
+          git add public/spotify-roulette
+          git diff --staged --quiet || git commit -m "chore: update spotify-roulette submodule"
+          git push
