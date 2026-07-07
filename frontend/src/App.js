@@ -33,7 +33,7 @@ function App() {
 
   const login = async (e) => {
     e.preventDefault()
-    window.location = await getSpotifyAuthUrl(CLIENT_ID, REDIRECT_URI)
+    window.top.location = await getSpotifyAuthUrl(CLIENT_ID, REDIRECT_URI)
   }
 
   useEffect(() => { wakeServer() }, [])
