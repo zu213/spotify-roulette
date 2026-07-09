@@ -16,9 +16,9 @@ function isJsonString(str) {
 }
 
 function App() {
-  const potentialRedirectUri = window.top.location.origin + window.top.location.pathname + window.top.location.hash
-  console.log("potentialRedirectUri: ", potentialRedirectUri)
-  const REDIRECT_URI = process.env.REACT_APP_REDIRECT_URI || potentialRedirectUri || "http://127.0.0.1:3000"
+  // Must be fragment-free and registered byte-for-byte in the Spotify dashboard.
+  // Uses this frame's own URL (not window.top) so it works embedded in the site's iframe.
+  const REDIRECT_URI = process.env.REACT_APP_REDIRECT_URI || window.location.origin + window.location.pathname
 
   const [token, setToken] = useState("")
   const navigate = useNavigate()
@@ -35,13 +35,31 @@ function App() {
 
   const login = async (e) => {
     e.preventDefault()
-    window.top.location = await getSpotifyAuthUrl(CLIENT_ID, REDIRECT_URI)
+    // Use a popup so this works in an iframe
+    window.open(await getSpotifyAuthUrl(CLIENT_ID, REDIRECT_URI), 'spotify-login', 'popup,width=500,height=750')
   }
+
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (e.key === 'token' && e.newValue && isJsonString(e.newValue)) {
+        setToken(JSON.parse(e.newValue).token)
+      }
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [])
 
   useEffect(() => { wakeServer() }, [])
 
   useEffect(() => {(async () => {
     const code = new URLSearchParams(window.location.search).get("code")
+
+    if (code && window.opener) {
+      await codeToToken(code)
+      window.close()
+      return
+    }
+
     let tokenObj = window.localStorage.getItem("token")
 
     if(!code && !tokenObj) return
