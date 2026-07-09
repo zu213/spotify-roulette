@@ -16,9 +16,9 @@ function isJsonString(str) {
 }
 
 function App() {
-  const REDIRECT_URI = process.env.REACT_APP_REDIRECT_URI ||
-    window.top.location.origin + window.top.location.pathname +
-  window.top.location.hash || "http://127.0.0.1:3000"
+  const potentialRedirectUri = window.top.location.origin + window.top.location.pathname + window.top.location.hash
+  console.log("potentialRedirectUri: ", potentialRedirectUri)
+  const REDIRECT_URI = process.env.REACT_APP_REDIRECT_URI || potentialRedirectUri || "http://127.0.0.1:3000"
 
   const [token, setToken] = useState("")
   const navigate = useNavigate()
