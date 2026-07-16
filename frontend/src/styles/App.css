@@ -54,6 +54,7 @@
 }
 
 .loader {
+  margin: 0 auto;
   width: 200px;
   height: 14px;
   background: radial-gradient(circle closest-side,#000 92%,#0000) calc(100%/6) 0/calc(100%/7) 100%;
