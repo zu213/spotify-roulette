@@ -49,7 +49,20 @@ function App() {
     return () => window.removeEventListener('storage', onStorage)
   }, [])
 
-  useEffect(() => { wakeServer() }, [])
+  // Wake the sleeping demo server on load, and again whenever the user
+  // returns to a tab that has been idle long enough for it to sleep again
+  useEffect(() => {
+    wakeServer()
+    let lastWake = Date.now()
+    const onVisible = () => {
+      if (document.visibilityState === 'visible' && Date.now() - lastWake > 5 * 60 * 1000) {
+        lastWake = Date.now()
+        wakeServer()
+      }
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
+  }, [])
 
   useEffect(() => {(async () => {
     const code = new URLSearchParams(window.location.search).get("code")
