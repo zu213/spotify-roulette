@@ -24,7 +24,11 @@ function App() {
   const navigate = useNavigate()
 
   async function codeToToken(code){
-    const data = await exchangeCodeForToken(CLIENT_ID, REDIRECT_URI, code).catch(() => null)
+    const data = await exchangeCodeForToken(CLIENT_ID, REDIRECT_URI, code).catch((e) => {
+      // Keep a lightweight breadcrumb so a failed exchange isn't completely silent
+      console.error('[auth] token exchange failed', e?.response?.status, e?.response?.data)
+      return null
+    })
     if (data){
       window.history.replaceState({}, "", "/")
       let tokenObj = {token: data.access_token, age: Date.now()}
@@ -67,7 +71,10 @@ function App() {
   useEffect(() => {(async () => {
     const code = new URLSearchParams(window.location.search).get("code")
 
-    if (code && window.opener) {
+    // Detect the auth popup via window.name (set in login()) — it survives the round-trip
+    // through Spotify, whereas window.opener is often severed to null by COOP.
+    const isAuthPopup = window.name === 'spotify-login'
+    if (code && isAuthPopup) {
       await codeToToken(code)
       window.close()
       return
