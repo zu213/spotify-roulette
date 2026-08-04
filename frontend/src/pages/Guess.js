@@ -66,19 +66,23 @@ const Guess = (props) => {
         allow="autoplay; encrypted-media"
         allowtransparency="true"
         />
-        <div>
-          {localTrack.album.images.length ? 
+        <div className='guess-stage'>
+          {localTrack.album.images.length ?
             <div className='Album-cover'>
-              <img className={!showAlbum && 'Album-cover-hidden'} src={localTrack.album.images[0].url} alt=""/>
+              <img className={!showAlbum ? 'Album-cover-hidden' : ''} src={localTrack.album.images[0].url} alt={showAlbum ? `Album art for ${localTrack.name}` : 'Hidden album art'}/>
             </div>
           :<div className='Album-cover'>No Image</div>}
-          {Array.from(localTrack.artists, (i) => (
-            <div className='artist' key={i} >
-              Artist: {showArtist ? <span>{i.name}{i < localTrack.artists.length - 1 && `,`}</span> : '???'}
+          <div className='clues'>
+            {Array.from(localTrack.artists, (i) => (
+              <div className='artist clue' key={i.id ?? i.name} >
+                <span className='clue-label'>Artist</span>
+                {showArtist ? <span className='clue-value'>{i.name}</span> : <span className='clue-hidden'>???</span>}
+              </div>
+            ))}
+            <div className='track clue'>
+              <span className='clue-label'>Track</span>
+              {showSong ? <span className='clue-value'>{localTrack.name}</span> : <span className='clue-hidden'>???</span>}
             </div>
-          ))}
-          <div className='track'>
-            Track: {showSong ? <span>{localTrack.name}</span> : '???'}
           </div>
         </div>
       </div> 
@@ -121,9 +125,9 @@ const Guess = (props) => {
 
   const playerButtons = () => {
     return (
-      <div>
+      <div className='player-buttons'>
         {Array.from(players, (player) => (
-          <button onClick={() => {playerGuess(player)}}>
+          <button className='player-btn' key={player.id ?? player.playerName} onClick={() => {playerGuess(player)}}>
             {player.playerName}
           </button>
         ))}
@@ -159,25 +163,28 @@ const Guess = (props) => {
           <div className="loader"></div>
         </div>
       }
-      <div className={gameState === 'loading' ? 'none' : ''}>
-        <div className='Guess-timer'> Time left: {timeLeft} </div>
+      <div className={gameState === 'loading' ? 'none' : 'guess-panel'}>
+        <div className={`Guess-timer ${timeLeft <= 5 ? 'Guess-timer--low' : ''}`}>
+          <span className='Guess-timer-label'>Time left</span>
+          <span className='Guess-timer-value'>{timeLeft}</span>
+        </div>
         {renderSong(track)}
-        <div>
+        <div className='guess-status'>
           {gameState === 'in-play' && !chosenPlayer ?
-            playerButtons() 
+            playerButtons()
             : chosenPlayer ?
             <span>Your answer: <span className='your-answer'>{chosenPlayer.playerName}</span></span>
-            : <span className='no-guess'>Did not guess in time!</span>
+            : <span className='no-guess'>Did not guess in time</span>
           }
         </div>
-        <div>
-          {guessTime && `Time of your guess: ${guessTime}` }
+        <div className='guess-time'>
+          {guessTime && `Guessed with ${guessTime}s left` }
         </div>
         <div className='answer'>
-          Answer: {gameState == 'done' ? <span>{player?.playerName}</span> : '???' }
+          Answer: {gameState === 'done' ? <span>{player?.playerName}</span> : '???' }
         </div>
         <div>
-          {gameState == 'done' && 
+          {gameState === 'done' &&
             <button onClick={startRound} >
               Next round
             </button>

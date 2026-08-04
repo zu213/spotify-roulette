@@ -126,9 +126,10 @@ function App() {
         }
     </div>
     {!token ?
-      <div>
-        <h4>You must login to Spotify to use this app</h4>
-        <a className='sign-in-link' href='/' onClick={login}>Login to Spotify</a>
+      <div className='login-hero'>
+        <h4>Guess whose song is playing</h4>
+        <p>A live party game built on everyone's top tracks. Connect your account to spin up a table or join your friends.</p>
+        <a className='sign-in-link' href='/' onClick={login}>Connect Spotify</a>
       </div>
       :
       <Routes>

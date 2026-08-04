@@ -1,19 +1,57 @@
 .Table-code {
-  font-size: x-large;
-  font-weight: bold;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin: 8px auto 0;
+  padding: 18px 38px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-soft);
+}
+
+.Table-code-value {
+  font-family: var(--mono);
+  font-size: clamp(2rem, 1.4rem + 3vw, 3rem);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  text-shadow: 0 0 24px var(--accent-glow);
 }
 
 .leaderboard-container {
   position: absolute;
-  right: 0;
-  margin: 20px;
+  top: 98px;
+  right: clamp(12px, 4vw, 40px);
+}
+
+.lobby {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  margin-top: 36px;
+}
+
+.lobby-hint {
+  margin: 0;
+  max-width: 40ch;
+  color: var(--text-dim);
+  line-height: 1.55;
 }
 
 .start-game-button {
-  margin: 20px;
+  padding: 16px 42px;
+  font-size: 17px;
 }
 
-.loader-note {
-  max-width: 400px;
-  margin: 20px auto 0;
+/* On narrow screens the leaderboard drops into normal flow */
+@media (max-width: 820px) {
+  .leaderboard-container {
+    position: static;
+    margin: 28px auto 0;
+    display: flex;
+    justify-content: center;
+  }
 }

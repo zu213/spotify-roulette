@@ -56,28 +56,29 @@ function Join() {
   return (
     <div className='join'>
       <div className='join-form-container'>
-        <div className='join-form'>
-          <div>
-            <label>Game Code: </label>
-            <input type='text' onChange={e => setSearchKey(e.target.value)}/>
+        <div className='join-card'>
+          <span className='eyebrow'>New round</span>
+          <h2 className='join-heading'>Create or join a table</h2>
+          <p className='join-sub'>Enter a name to start a new game, or add a table code to join friends already at a table.</p>
+          <div className='join-form'>
+            <div className='join-field'>
+              <label htmlFor='playerName'>Player name</label>
+              <input id='playerName' type='text' placeholder='e.g. Bob' autoComplete='off' onChange={e => setPlayerName(e.target.value)}/>
+            </div>
+            <div className='join-field'>
+              <label htmlFor='gameCode'>Table code <span className='join-optional'>— only to join</span></label>
+              <input id='gameCode' type='text' inputMode='numeric' placeholder='e.g. 123' autoComplete='off' onChange={e => setSearchKey(e.target.value)}/>
+            </div>
           </div>
-          <div>
-            <label>Player Name: </label>
-            <input type='text' onChange={e => setPlayerName(e.target.value)}/>
+          <div className='join-buttons'>
+            <button className='join-primary' onClick={createTable}>Create game</button>
+            <button className='join-secondary' onClick={findTable}>Join game</button>
           </div>
-        </div>
-      </div>
-      <div className='join-buttons'>
-        <div className='join-button'>
-          <button onClick={findTable}>Join Game</button>
-        </div>
-        <div className='join-button'>
-          <button onClick={createTable}>Create Game</button>
-        </div>
-      </div>
 
-      {connecting && <p className='join-connecting'>Contacting server — it sleeps when idle, so this can take up to a minute...</p>}
-      {error && <textarea className='join-error' readOnly unselectable='on' value={error}></textarea>}
+          {connecting && <p className='join-connecting' role='status'>Contacting the server — it sleeps when idle, so this can take up to a minute.</p>}
+          {error && <div className='join-error' role='alert'>{error}</div>}
+        </div>
+      </div>
     </div>
   )
 }

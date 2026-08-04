@@ -1,71 +1,148 @@
-.game, .join {
-  margin: 10px;
+.game,
+.join {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 30px 20px 72px;
 }
 
-/* Header */ 
+/* ---- Header ---- */
 
 .App-header {
-  background-color: #272727;
-  height: 18vh;
+  position: sticky;
+  top: 0;
+  z-index: 20;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 15px clamp(18px, 5vw, 44px);
+  background: rgba(10, 12, 10, 0.6);
+  backdrop-filter: blur(18px) saturate(1.3);
+  -webkit-backdrop-filter: blur(18px) saturate(1.3);
+  border-bottom: 1px solid var(--border);
   user-select: none;
 }
 
 .App-header h1 {
-  font-size: xx-large;
-  color: white;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  margin: 0;
+  font-size: clamp(1.35rem, 1rem + 1.5vw, 2rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--text);
 }
 
-.App-header a {
-  font-size: x-large;
+/* Roulette-target mark (concentric rings + center dot) — not a Spotify glyph */
+.App-header h1::before {
+  content: '';
+  flex: none;
+  width: 0.86em;
+  height: 0.86em;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  background:
+    radial-gradient(circle, var(--accent) 0 22%, transparent 24%),
+    radial-gradient(circle, transparent 0 42%, rgba(163, 230, 53, 0.4) 43% 52%, transparent 54%);
+  box-shadow: 0 0 14px var(--accent-glow);
 }
 
-.App-header button {
-  font-size: medium;
-}
-
+/* Logout — quiet ghost pill */
 .logout-button {
-  position: absolute;
-  right: 30px;
+  padding: 9px 18px;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  box-shadow: none;
+}
+
+.logout-button:hover {
+  background: rgba(180, 240, 120, 0.14);
+  filter: none;
+  box-shadow: none;
+}
+
+.logout-button:active {
+  box-shadow: none;
+}
+
+/* ---- Login hero ---- */
+
+.login-hero {
+  max-width: 560px;
+  margin: clamp(48px, 12vh, 120px) auto 0;
+  padding: 46px 34px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+}
+
+.login-hero h4 {
+  margin: 0;
+  font-size: clamp(1.6rem, 1.1rem + 1.8vw, 2.4rem);
+  font-weight: 700;
+  line-height: 1.12;
+}
+
+.login-hero p {
+  margin: 0;
+  max-width: 42ch;
+  color: var(--text-dim);
+  line-height: 1.6;
 }
 
 .sign-in-link {
-  margin: 5px
+  margin-top: 4px;
 }
 
-.loader-container {
-  display: block;
-  text-align: center;
-  position: relative;
-  width: fit-content;
-  left: 50%;
-  transform: translate(-50%, 0);
+/* ---- Loader ---- */
 
-  h3 {
-    margin: 20px;
-  }
+.loader-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  margin: 8vh auto 0;
+}
+
+.loader-container h3 {
+  margin: 4px 0;
+  font-weight: 600;
+  color: var(--text);
 }
 
 .loader-container--join {
-  margin-top: 50px;
+  margin-top: 12vh;
 }
 
+/* Spinning target ring loader — echoes the brand mark */
 .loader {
-  margin: 0 auto;
-  width: 200px;
-  height: 14px;
-  background: radial-gradient(circle closest-side,#000 92%,#0000) calc(100%/6) 0/calc(100%/7) 100%;
-  animation: l2 0.5s infinite linear;
-  display: block;
-}
-@keyframes l2 {
-    100% {background-position: 0 0}
+  width: 42px;
+  height: 42px;
+  margin: 18px auto;
+  border-radius: 50%;
+  border: 3px solid var(--border-strong);
+  border-top-color: var(--accent);
+  border-right-color: var(--accent);
+  animation: loaderSpin 0.7s linear infinite;
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+@keyframes loaderSpin {
+  to { transform: rotate(360deg); }
+}
+
+.loader-note {
+  max-width: 42ch;
+  margin: 6px auto 0;
+  color: var(--text-faint);
+  font-size: 0.9rem;
+  line-height: 1.55;
 }

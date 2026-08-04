@@ -151,11 +151,19 @@ function Game(props) {
       </div>
       :
       <>
-        <div className='Table-code'>Table code: {tableCode} </div>
+        <div className='Table-code'>
+          <span className='eyebrow'>Table code</span>
+          <span className='Table-code-value'>{tableCode}</span>
+        </div>
         <div className='leaderboard-container'>
           <Leaderboard scores={scores} />
         </div>
-        {tableOwner && !gameStarted && <button className='start-game-button' onClick={startRound}>Start Game</button>}
+        {tableOwner && !gameStarted &&
+          <div className='lobby'>
+            <p className='lobby-hint'>Share the code above. Once everyone's in, kick things off.</p>
+            <button className='start-game-button' onClick={startRound}>Start game</button>
+          </div>
+        }
         {gameStarted && 
         <Guess 
           key={song.id}
