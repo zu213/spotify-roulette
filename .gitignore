@@ -2,3 +2,5 @@
 *-lock.json
 *.env*
 *.DS_Store
+# Built by the parent site (build.sh) in the cloud — not tracked
+build/

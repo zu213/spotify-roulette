@@ -41,6 +41,9 @@ export async function getSpotifyAuthUrl(clientId, redirectUri) {
     response_type: 'code',
     redirect_uri: redirectUri,
     scope: 'user-top-read',
+    // Round-trips through Spotify in the URL, so the returning popup can
+    // identify itself even when COOP resets window.name / severs window.opener.
+    state: 'spotify-login',
     code_challenge_method: 'S256',
     code_challenge: challenge
   })

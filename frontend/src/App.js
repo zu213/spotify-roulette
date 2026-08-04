@@ -69,11 +69,13 @@ function App() {
   }, [])
 
   useEffect(() => {(async () => {
-    const code = new URLSearchParams(window.location.search).get("code")
+    const searchParams = new URLSearchParams(window.location.search)
+    const code = searchParams.get("code")
 
-    // Detect the auth popup via window.name (set in login()) — it survives the round-trip
-    // through Spotify, whereas window.opener is often severed to null by COOP.
-    const isAuthPopup = window.name === 'spotify-login'
+    // Detect the auth popup via the OAuth `state` param — it comes back from Spotify
+    // in the URL, so it survives COOP wiping window.name and severing window.opener.
+    // (window.name is kept as a belt-and-suspenders fallback.)
+    const isAuthPopup = searchParams.get('state') === 'spotify-login' || window.name === 'spotify-login'
     if (code && isAuthPopup) {
       await codeToToken(code)
       window.close()
