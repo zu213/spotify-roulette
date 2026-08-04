@@ -20,13 +20,48 @@ const Guess = (props) => {
   const [chosenPlayer, setChosenPlayer] = useState(null)
   const songStarted = useRef(false)
 
+
+  const startClock = () => {
+    if (intervalId) clearInterval(intervalId)
+    setTimeLeft(30)
+
+    const id = setInterval(() => {
+      setTimeLeft(prev => {
+        // Stop the timer when it reaches 0
+        if (prev <= 1) {
+          clearInterval(intervalId)
+          clearInterval(id)
+          setIntervalId(null)
+          if(gameState === 'in-play'){
+            playPlayer('spotify')
+          }
+          ws.send(JSON.stringify({
+            type: 'guess_made',
+            playerId: '',
+            timeLeft: 0
+          }))
+          setGameState('done')
+          return 0
+        }
+
+        if (prev <= 20) setShowAlbum(true)
+        if (prev <= 15) setShowArtist(true)
+        if (prev <= 10) setShowSong(true)
+
+        return prev - 1
+      })
+    }, 1000)
+
+    setIntervalId(id)
+  }
+
   useEffect(() => {
     // forced get element by id
     const iframe = document.getElementById('spotify')
     if (!iframe || !iframe.contentWindow) return
 
     const handleMessage = (m) => {
-      if(m.data?.type == 'ready') {
+      if(m.data?.type === 'ready') {
         playPlayer('spotify')
       } else if (m.data?.type === 'playback_update' && !songStarted.current) {
         songStarted.current = true
@@ -87,40 +122,6 @@ const Guess = (props) => {
         </div>
       </div> 
     )
-  }
-
-  const startClock = () => {
-    if (intervalId) clearInterval(intervalId)
-    setTimeLeft(30)
-
-    const id = setInterval(() => {
-      setTimeLeft(prev => {
-        // Stop the timer when it reaches 0
-        if (prev <= 1) {
-          clearInterval(intervalId)
-          clearInterval(id)
-          setIntervalId(null)
-          if(gameState == 'in-play'){
-            playPlayer('spotify')
-          }
-          ws.send(JSON.stringify({
-            type: 'guess_made',
-            playerId: '',
-            timeLeft: 0
-          }))
-          setGameState('done')
-          return 0
-        }
-
-        if (prev <= 20) setShowAlbum(true)
-        if (prev <= 15) setShowArtist(true)
-        if (prev <= 10) setShowSong(true)
-
-        return prev - 1
-      })
-    }, 1000)
-
-    setIntervalId(id)
   }
 
   const playerButtons = () => {

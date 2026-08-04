@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react'
+import {useEffect, useRef, useState} from 'react'
 import './styles/App.css'
 import { requestFromSpotify, getSpotifyAuthUrl, exchangeCodeForToken, wakeServer } from './helper/bridge'
 import { Route, Routes, useNavigate} from 'react-router-dom'
@@ -21,6 +21,12 @@ function App() {
   const REDIRECT_URI = process.env.REACT_APP_REDIRECT_URI || window.location.origin + window.location.pathname
 
   const [token, setToken] = useState("")
+  // True only inside the auth popup once it has finished, so we can show a
+  // "you can close this" message if the browser won't let the popup self-close.
+  const [popupDone, setPopupDone] = useState(false)
+  // Handle to the auth popup, kept so the opener can close it (a popup often
+  // can't close itself once COOP has stripped its script-closable status).
+  const popupRef = useRef(null)
   const navigate = useNavigate()
 
   async function codeToToken(code){
@@ -39,14 +45,19 @@ function App() {
 
   const login = async (e) => {
     e.preventDefault()
-    // Use a popup so this works in an iframe
-    window.open(await getSpotifyAuthUrl(CLIENT_ID, REDIRECT_URI), 'spotify-login', 'popup,width=500,height=750')
+    // Use a popup so this works in an iframe. Keep the handle so we can close
+    // it from here once the popup reports back that login succeeded.
+    popupRef.current = window.open(await getSpotifyAuthUrl(CLIENT_ID, REDIRECT_URI), 'spotify-login', 'popup,width=500,height=750')
   }
 
   useEffect(() => {
     const onStorage = (e) => {
       if (e.key === 'token' && e.newValue && isJsonString(e.newValue)) {
         setToken(JSON.parse(e.newValue).token)
+        // Close the auth popup from the opener — self-close inside the popup is
+        // blocked once COOP severs it, but the opener can still close it.
+        try { popupRef.current?.close() } catch (err) { /* handle may be severed */ }
+        popupRef.current = null
       }
     }
     window.addEventListener('storage', onStorage)
@@ -78,7 +89,11 @@ function App() {
     const isAuthPopup = searchParams.get('state') === 'spotify-login' || window.name === 'spotify-login'
     if (code && isAuthPopup) {
       await codeToToken(code)
+      // Try to self-close; the opener also closes us via the storage event.
+      // If both are blocked by COOP, popupDone renders a "you can close" note
+      // instead of the misleading logged-out connect screen.
       window.close()
+      setPopupDone(true)
       return
     }
 
@@ -111,12 +126,23 @@ function App() {
       setToken(null)
     })
 
-  })()}, [])
+  })()}, [codeToToken, navigate])
 
   const logout = () => {
     navigate("/")
     setToken("")
     window.localStorage.removeItem("token")
+  }
+
+  if (popupDone) {
+    return (
+      <div className='App'>
+        <div className='login-hero'>
+          <h4>✓ Connected</h4>
+          <p>You're signed in. You can close this window and head back to the game.</p>
+        </div>
+      </div>
+    )
   }
 
   return (

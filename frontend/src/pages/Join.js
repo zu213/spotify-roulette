@@ -36,7 +36,7 @@ function Join() {
       navigate('/table', {state: {existingTableCode: searchKey, playerName: playerName }})
     })
     .catch(e => {
-      if(e.status == 404) {
+      if(e.status === 404) {
         setError(`Table "${searchKey}" not found`)
       }
     })
