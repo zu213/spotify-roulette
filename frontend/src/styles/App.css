@@ -2,7 +2,7 @@
 .join {
   max-width: 1120px;
   margin: 0 auto;
-  padding: 30px 20px 72px;
+  padding: 24px 20px 48px;
 }
 
 /* ---- Header ---- */
@@ -44,7 +44,7 @@
   border: 2px solid var(--accent);
   background:
     radial-gradient(circle, var(--accent) 0 22%, transparent 24%),
-    radial-gradient(circle, transparent 0 42%, rgba(163, 230, 53, 0.4) 43% 52%, transparent 54%);
+    radial-gradient(circle, transparent 0 42%, rgba(139, 197, 63, 0.42) 43% 52%, transparent 54%);
   box-shadow: 0 0 14px var(--accent-glow);
 }
 

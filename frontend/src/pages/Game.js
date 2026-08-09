@@ -60,6 +60,7 @@ function Game(props) {
       case 'show_leaderboard':
         setChosenPlayer(data['answer'])
         setScores(data['scores'])
+        break
 
       default:
         break
@@ -133,6 +134,9 @@ function Game(props) {
       setHeartbeat(null)
       clearTimeout(retryTimeout)
     }
+    // Runs once on mount to open the table websocket; re-running on every
+    // dependency change would tear down and reconnect the socket mid-game.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const startRound = () => {

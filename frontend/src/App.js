@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from 'react'
+import {useCallback, useEffect, useRef, useState} from 'react'
 import './styles/App.css'
 import { requestFromSpotify, getSpotifyAuthUrl, exchangeCodeForToken, wakeServer } from './helper/bridge'
 import { Route, Routes, useNavigate} from 'react-router-dom'
@@ -29,7 +29,7 @@ function App() {
   const popupRef = useRef(null)
   const navigate = useNavigate()
 
-  async function codeToToken(code){
+  const codeToToken = useCallback(async (code) => {
     const data = await exchangeCodeForToken(CLIENT_ID, REDIRECT_URI, code).catch((e) => {
       // Keep a lightweight breadcrumb so a failed exchange isn't completely silent
       console.error('[auth] token exchange failed', e?.response?.status, e?.response?.data)
@@ -41,7 +41,7 @@ function App() {
       window.localStorage.setItem("token", JSON.stringify(tokenObj))
       return tokenObj
     }
-  }
+  }, [REDIRECT_URI])
 
   const login = async (e) => {
     e.preventDefault()

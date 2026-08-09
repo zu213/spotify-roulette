@@ -11,11 +11,11 @@
   --text-dim: #9aa693;
   --text-faint: #616b5b;
 
-  /* Single accent — an electric lime, deliberately not Spotify's forest green */
-  --accent: #a3e635;
-  --accent-bright: #c6f76a;
-  --accent-deep: #4d7c0f;
-  --accent-glow: rgba(163, 230, 53, 0.32);
+  /* Single accent — a deep leaf-green, deliberately not Spotify's blue-green */
+  --accent: #2dab21;
+  --accent-bright: #84c430;
+  --accent-deep: #33540c;
+  --accent-glow: rgba(139, 197, 63, 0.3);
   --danger: #ff7a6b;
 
   /* Shape + depth */
@@ -50,8 +50,8 @@ body {
   background-color: var(--bg);
   /* Off-center ambient lime glow + a cooler counter-glow, never a flat fill */
   background-image:
-    radial-gradient(52rem 40rem at 88% -12%, rgba(163, 230, 53, 0.13), transparent 62%),
-    radial-gradient(46rem 38rem at -8% 108%, rgba(90, 200, 120, 0.07), transparent 60%);
+    radial-gradient(52rem 40rem at 88% -12%, rgba(107, 165, 36, 0.14), transparent 62%),
+    radial-gradient(46rem 38rem at -8% 108%, rgba(60, 130, 70, 0.07), transparent 60%);
   background-attachment: fixed;
 }
 

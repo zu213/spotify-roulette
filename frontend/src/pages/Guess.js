@@ -77,6 +77,9 @@ const Guess = (props) => {
       window.removeEventListener('message', handleMessage)
       songStarted.current = false
     }
+    // Intentionally keyed on `track` only — the message listener should be
+    // (re)bound per song, not rebuilt whenever startClock/playPlayer change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [track])
 
   const playPlayer = (id) => {
