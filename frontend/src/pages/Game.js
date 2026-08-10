@@ -2,7 +2,7 @@ import '../styles/Game.css'
 
 import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { requestFromSpotify, SERVER_WS_URL } from '../helper/bridge'
+import { requestFromSpotify, SERVER_WS_URL, waitForServer } from '../helper/bridge'
 
 import Guess from './Guess'
 import Leaderboard from './Leaderboard'
@@ -70,17 +70,28 @@ function Game(props) {
   useEffect(() => {
     let retryTimeout = null
 
-    getUsersTopSongs().then(topTracks => {
+    getUsersTopSongs().then(async topTracks => {
       const playerName= state.playerName
       const websocketURL = `${SERVER_WS_URL}?playername=` + playerName + (existingTableCode ? `&tableid=${existingTableCode}` : '')
 
-      // The free server can take a minute to wake up, so keep retrying until it does
+      // The free demo server sleeps when idle. Make sure it answers over HTTP
+      // (i.e. it's awake) before trying to upgrade to a WebSocket — a socket
+      // opened against a sleeping server is refused/dropped and looks like a
+      // disconnect. Join already waits via getTable(); Create didn't, so cold
+      // starts failed here.
+      await waitForServer()
+
+      // Keep retrying the socket too, in case it's still stabilising post-wake
       const connect = (attemptsLeft) => {
       const websocket = new WebSocket(websocketURL)
       let opened = false
+      // A connect to a still-waking server can hang without ever firing
+      // onclose; force a retry after a few seconds instead of stalling.
+      const openTimer = setTimeout(() => { if (!opened) websocket.close() }, 8000)
 
       websocket.onopen = () => {
         opened = true
+        clearTimeout(openTimer)
         // console.log("Connected to server")
         // Setup heartbeat
         setHeartbeat(setInterval(() => {
@@ -105,6 +116,7 @@ function Game(props) {
       }
 
       websocket.onclose = () => {
+        clearTimeout(openTimer)
         console.log("Disconnected")
         clearInterval(heartbeat)
         setHeartbeat(null)

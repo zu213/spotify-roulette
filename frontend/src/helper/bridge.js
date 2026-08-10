@@ -84,3 +84,19 @@ export async function getTable(tableCode, retries = 20) {
 export function wakeServer() {
   return axios.get(SERVER_URL).catch(() => {})
 }
+
+// Wait until the sleeping demo server is actually awake before we rely on it.
+// A cold start can take ~a minute; a real HTTP response (even a 404) means it's
+// up, while a network error or 502/503/504 means it's still waking. Resolves
+// once it responds, and also resolves (rather than hanging) once retries run out
+// so the caller can go ahead and try anyway.
+export async function waitForServer(retries = 25, delayMs = 3000) {
+  try {
+    await axios.get(SERVER_URL, { timeout: 8000 })
+  } catch (e) {
+    const stillWaking = !e.response || [502, 503, 504].includes(e.response.status)
+    if (!stillWaking || retries <= 0) return
+    await new Promise(resolve => setTimeout(resolve, delayMs))
+    return waitForServer(retries - 1, delayMs)
+  }
+}
