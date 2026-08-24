@@ -140,6 +140,8 @@ function App() {
         <div className='login-hero'>
           <h4>✓ Connected</h4>
           <p>You're signed in. You can close this window and head back to the game.</p>
+
+          <button className='sign-in-link' onClick={() => window.close()}>Close</button>
         </div>
       </div>
     )
