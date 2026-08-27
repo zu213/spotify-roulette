@@ -107,7 +107,7 @@ wss.on('connection', (ws, req) => {
     tableIndex = tableInfo.index
   }
 
-  if (!tableIndex) return ws.close()
+  if (tableIndex == null || tableIndex < 0 || !tables[tableIndex]) return ws.close() 
   lastActivityTime = Date.now()
 
   console.log(`Player ${playerName} connected to table ${tableCode}`)
