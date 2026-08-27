@@ -77,11 +77,50 @@
   box-shadow: 0 0 0 4px var(--accent-glow);
 }
 
+/* Three separate single-digit boxes so it's obvious the code is 3 numbers */
+.code-boxes {
+  display: flex;
+  gap: 12px;
+}
+
+.join-form .code-box {
+  width: 100%;
+  max-width: 72px;
+  height: 66px;
+  padding: 0;
+  text-align: center;
+  font-size: clamp(1.6rem, 1.1rem + 1.6vw, 2rem);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.join-form .code-box::placeholder {
+  color: var(--text-faint);
+  opacity: 0.5;
+}
+
+.code-hint {
+  margin: 8px 0 0;
+  font-size: 0.8rem;
+  color: var(--text-faint);
+}
+
 .join-buttons {
   display: flex;
   flex-direction: column;
   gap: 10px;
   margin-top: 22px;
+}
+
+.join-buttons button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: none;
+  box-shadow: none;
+}
+
+.join-buttons button:disabled:hover {
+  background: var(--surface-2);
 }
 
 .join-buttons button {

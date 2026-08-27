@@ -34,7 +34,8 @@ function checkPlayers() {
 function createTable(){
   let number
 
-  const min = 0
+  // Always 3 digits so the join UI can rely on a fixed-length code
+  const min = 100
   const max = 999
 
   for(let i = 0; i < 5; i++){
@@ -118,6 +119,9 @@ wss.on('connection', (ws, req) => {
 
       // always needs fresh index in case things change
       tableIndex = tables.findIndex(t => t.code == tableCode)
+      // Bail early if the table is gone (eg after a server restart) so we don't
+      // index into undefined below and throw into the catch for every message.
+      if(tableIndex < 0) return ws.send(JSON.stringify({type: 'no_table', message: 'invalid table'}))
       playerIndex = tables[tableIndex].playerIds.findIndex(p => p.id == playerId)
       lastActivityTime = Date.now()
 
@@ -132,14 +136,21 @@ wss.on('connection', (ws, req) => {
           broadcastToTable(tableIndex, {type: 'table_info', tableCode, players: tables[tableIndex].playerIds, scores})
           break
 
-        case 'ping':
-          if(playerId == null || tableCode == null || playerIndex == null || tableIndex == null) return
+        case 'ping': {
+          if(playerId == null || tableCode == null || tableIndex == null) return
           if(tableIndex < 0 || !tables[tableIndex]) return ws.send(JSON.stringify({type: 'no_table', message: 'invalid table'}))
-          
+
+          // playerIndex is -1 (not null) when this player is no longer at the table,
+          // eg after the inactivity sweep removed them. Indexing with -1 would set a
+          // property on undefined and spam the logs, so tell the client instead.
+          const player = playerIndex >= 0 ? tables[tableIndex].playerIds[playerIndex] : null
+          if(!player) return ws.send(JSON.stringify({type: 'no_table', message: 'player not at table'}))
+
           console.log(`Ping from player: ${playerId}`)
-          tables[tableIndex].playerIds[playerIndex]['lastActivityTime'] = lastActivityTime
+          player['lastActivityTime'] = lastActivityTime
           ws.send(JSON.stringify({type: 'pong', message: `Table ${tableCode} alive message received for player ${playerId}`}))
           break
+        }
 
         case 'start_round':
           // Pick player and song
@@ -151,6 +162,8 @@ wss.on('connection', (ws, req) => {
           break
 
         case 'guess_made':
+          // Same -1 guard as ping: ignore a guess from a player no longer at the table
+          if(tableIndex < 0 || playerIndex < 0 || !tables[tableIndex]?.playerIds[playerIndex]) return
           console.log(`Guess made by player ${playerId}`)
           tables[tableIndex].playerIds[playerIndex].playingGame = false
           const answerPlayer = tables[tableIndex].chosenPlayer
