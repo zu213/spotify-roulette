@@ -126,7 +126,12 @@ function App() {
       setToken(null)
     })
 
-  })()}, [codeToToken, navigate])
+  // Runs once on mount to handle the OAuth redirect / restore the saved token.
+  // navigate's identity changes after every navigation, so listing it as a dep
+  // would re-run this mid-session and bounce the user back to "/" (eg right after
+  // they create a table).
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  })()}, [])
 
   const logout = () => {
     navigate("/")
