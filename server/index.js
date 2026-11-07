@@ -133,7 +133,7 @@ wss.on('connection', (ws, req) => {
           tables[tableIndex].playerIds.push({tracks: data.tracks, id: playerId, lastActivityTime: lastActivityTime, playerName: playerName, ws, score: 0, playingGame: false})
           playerIndex = tables[tableIndex].playerIds.length - 1
           const scores = tables[tableIndex].playerIds.map(player => ({playerName: player['playerName'], score: player['score']}))
-          broadcastToTable(tableIndex, {type: 'table_info', tableCode, players: tables[tableIndex].playerIds, scores})
+          broadcastToTable(tableIndex, {type: 'table_info', tableCode: Number(tableCode), players: tables[tableIndex].playerIds, scores})
           break
 
         case 'ping': {
